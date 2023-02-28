@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .forms import NewUserForm
+from .forms import NewUserForm, NewArticleForm
 
 
 def index(request):
@@ -49,3 +49,21 @@ def logout_request(request):
     logout(request)
     messages.info(request, "You have successfully logged out.")
     return redirect('articles:index')
+
+
+def publish_article(request):
+    if request.user.is_authenticated:
+        if request.method == 'POST':
+            form = NewArticleForm(request.user, request.POST,)
+            if form.is_valid():
+                form.save()
+                return HttpResponse('Successfully published an article')
+
+        else:
+            form = NewArticleForm(request.user)
+        return render(request, 'articles/publish_article.html', {'form': form})
+
+    else:
+        messages.info(
+            request, "You cannot publish articles as you are not authenticated")
+        return render(request, 'articles/become_user.html')
