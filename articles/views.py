@@ -104,6 +104,6 @@ def delete_article(request, user_id, article_id):
                 return render(request, 'articles/not_yours.html')
             article.delete()
             messages.info(request, 'Article was successfully deleted')
-            return render(request, 'articles/personal_page.html', {'articles': articles})
+            return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
         else:
             return render(request, 'articles/not_exists.html')

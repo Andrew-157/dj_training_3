@@ -10,13 +10,13 @@
       integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
       crossorigin="anonymous"
     />
-    <title>Document</title>
+    <title>Your article</title>
   </head>
   <body>
     {% load crispy_forms_tags %}
     <div class="container py-5">
       <h2>Topic: {{ article.topic }}</h2>
-      <h3>Content</h3>
+      <h3>Content:</h3>
       <p>{{ article.content }}</p>
       <p>Publication date: {{ article.pub_date.date }}</p>
       <a href="">Wanna change something about this article?</a>

@@ -4,23 +4,35 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+      integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+      crossorigin="anonymous"
+    />
+    <title>Your personal page</title>
   </head>
   <body>
-    {% if messages %} {% for message in messages %}
-    <p>{{ message }}</p>
-    {% endfor %} {% endif %}
-    <h1>Your published articles</h1>
-    <div>
-      {% if articles %} 
+    {% load crispy_forms_tags %}
+    <div class="container py-5">
+      {% if messages %} {% for message in messages %}
+      <p>{{ message }}</p>
+      {% endfor %} {% endif %} {% if articles %}
+      <h1>Your published articles</h1>
       {% for article in articles %}
       <h2>Topic: {{ article.topic }}</h2>
       <p>Content:</p>
       <p>{{ article.content }}</p>
       <p>Publication date: {{ article.pub_date.date }}</p>
-      <a href="{% url 'articles:personal-article' user.id article.id %}">More about this article</a>
-      {% endfor %} 
-      {% else %}
+      <a href="{% url 'articles:personal-article' user.id article.id %}"
+        >More about this article</a
+      >
+      <p>Click this button if you want to delete this article:</p>
+      <form action="{% url 'articles:delete-article' user.id article.id %}">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Delete article</button>
+      </form>
+      {% endfor %} {% else %}
       <p>Looks like you haven't published anything yet</p>
       {% endif %}
     </div>
