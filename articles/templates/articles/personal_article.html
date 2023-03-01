@@ -4,9 +4,12 @@
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Not yours</title>
+    <title>Document</title>
   </head>
   <body>
-    <h2>This article is not yours</h2>
+    <h2>Topic: {{ article.topic }}</h2>
+    <h3>Content</h3>
+    <p>{{ article.content }}</p>
+    <p>Publication date: {{ article.pub_date.date }}</p>
   </body>
 </html>

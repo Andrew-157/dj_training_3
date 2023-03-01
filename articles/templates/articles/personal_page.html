@@ -13,12 +13,15 @@
     <h1>Your published articles</h1>
     <div>
       {% if articles %} 
-        {% for article in articles %}
-            <h2> Topic: {{ article.topic }}</h2>
-            <p>Content {{ article.content }}</p>
-        {% endfor %} 
+      {% for article in articles %}
+      <h2>Topic: {{ article.topic }}</h2>
+      <p>Content:</p>
+      <p>{{ article.content }}</p>
+      <p>Publication date: {{ article.pub_date.date }}</p>
+      <a href="{% url 'articles:personal-article' user.id article.id %}">More about this article</a>
+      {% endfor %} 
       {% else %}
-            <p>Looks like you haven't published anything yet</p>
+      <p>Looks like you haven't published anything yet</p>
       {% endif %}
     </div>
   </body>

@@ -80,3 +80,15 @@ def personal(request, user_id):
 
     else:
         return render(request, 'articles/not_yours.html')
+
+
+def personal_article(request, user_id, article_id):
+    current_user = request.user
+    if current_user.is_authenticated and current_user.id == user_id:
+        article = Article.objects.filter(id=article_id).first()
+        if article:
+            if article.author_id != current_user.id:
+                return render(request, 'articles/not_yours.html')
+            return render(request, 'articles/personal_article.html', {'article': article})
+        else:
+            return render(request, 'articles/not_exists.html')
