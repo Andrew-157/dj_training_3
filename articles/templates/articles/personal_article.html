@@ -13,15 +13,18 @@
     <title>Document</title>
   </head>
   <body>
-    <h2>Topic: {{ article.topic }}</h2>
-    <h3>Content</h3>
-    <p>{{ article.content }}</p>
-    <p>Publication date: {{ article.pub_date.date }}</p>
-    <a href="">Wanna change something about this article?</a>
-    <p>Click this button if you want to delete this article</p>
-    <form action="">
-      {% csrf_token %}
-      <button class="btn btn-primary" type="submit">Delete article</button>
-    </form>
+    {% load crispy_forms_tags %}
+    <div class="container py-5">
+      <h2>Topic: {{ article.topic }}</h2>
+      <h3>Content</h3>
+      <p>{{ article.content }}</p>
+      <p>Publication date: {{ article.pub_date.date }}</p>
+      <a href="">Wanna change something about this article?</a>
+      <p>Click this button if you want to delete this article:</p>
+      <form action="{% url 'articles:delete-article' user.id article.id %}">
+        {% csrf_token %}
+        <button class="btn btn-primary" type="submit">Delete article</button>
+      </form>
+    </div>
   </body>
 </html>

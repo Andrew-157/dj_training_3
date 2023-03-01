@@ -92,3 +92,18 @@ def personal_article(request, user_id, article_id):
             return render(request, 'articles/personal_article.html', {'article': article})
         else:
             return render(request, 'articles/not_exists.html')
+
+
+def delete_article(request, user_id, article_id):
+    current_user = request.user
+    if current_user.is_authenticated and current_user.id == user_id:
+        article = Article.objects.filter(id=article_id).first()
+        articles = Article.objects.filter(author_id=current_user.id)
+        if article:
+            if article.author_id != current_user.id:
+                return render(request, 'articles/not_yours.html')
+            article.delete()
+            messages.info(request, 'Article was successfully deleted')
+            return render(request, 'articles/personal_page.html', {'articles': articles})
+        else:
+            return render(request, 'articles/not_exists.html')
