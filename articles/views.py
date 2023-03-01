@@ -58,6 +58,8 @@ def publish_article(request):
             form = NewArticleForm(request.user, request.POST,)
             if form.is_valid():
                 form.save()
+                messages.info(
+                    request, 'You successfully published new article')
                 return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
 
         else:
@@ -74,7 +76,6 @@ def personal(request, user_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
         articles = Article.objects.filter(author_id=current_user.id)
-        messages.info(request, 'You successfully published new article')
         return render(request, 'articles/personal_page.html', {'articles': articles})
 
     else:

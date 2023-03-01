@@ -13,6 +13,9 @@
       anything you want
     </p>
     <a href="{% url 'articles:publish-article' %}">Publish your article here</a>
+    {% if user.is_authenticated %} 
+      <a href="{% url 'articles:personal-page' user.id %}">See your published articles</a>
+    {% endif %}
     <h2>
       In order to publish your own articles you need to be an authenticated user
     </h2>
