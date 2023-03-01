@@ -54,8 +54,10 @@ def logout_request(request):
 
 def publish_article(request):
     if request.user.is_authenticated:
+        data = {}
+        data['user'] = request.user
         if request.method == 'POST':
-            form = NewArticleForm(request.user, request.POST,)
+            form = NewArticleForm(data, request.POST,)
             if form.is_valid():
                 form.save()
                 messages.info(
@@ -63,7 +65,7 @@ def publish_article(request):
                 return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
 
         else:
-            form = NewArticleForm(request.user)
+            form = NewArticleForm(data)
         return render(request, 'articles/publish_article.html', {'form': form})
 
     else:
@@ -98,12 +100,37 @@ def delete_article(request, user_id, article_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
         article = Article.objects.filter(id=article_id).first()
-        articles = Article.objects.filter(author_id=current_user.id)
         if article:
             if article.author_id != current_user.id:
                 return render(request, 'articles/not_yours.html')
             article.delete()
             messages.info(request, 'Article was successfully deleted')
-            return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
+            return HttpResponseRedirect(reverse('articles:personal-page', args=(current_user.id, )))
         else:
             return render(request, 'articles/not_exists.html')
+
+
+def update_article(request, user_id, article_id):
+    current_user = request.user
+    if current_user.is_authenticated and current_user.id == user_id:
+        data = {}
+        data['user'] = current_user
+        article = Article.objects.filter(id=article_id).first()
+        if article:
+            if article.author_id != current_user.id:
+                return render(request, 'articles/not_yours.html')
+            data['article'] = article.id
+            if request.method == 'POST':
+                form = NewArticleForm(
+                    data,
+                    request.POST,
+                    instance=article)
+                if form.is_valid():
+                    form.save()
+                    messages.info(
+                        request, 'You successfully updated this article')
+                    return HttpResponseRedirect(reverse('articles:personal-article', args=(current_user.id,
+                                                                                           article_id, )))
+            else:
+                form = NewArticleForm(data, instance=article)
+                return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
