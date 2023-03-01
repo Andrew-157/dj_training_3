@@ -12,17 +12,15 @@
       LIGMA is a Website for publication, reading and discussing articles about
       anything you want
     </p>
-    <a href="">See our recent articles</a>
+    <a href="{% url 'articles:publish-article' %}">Publish your article here</a>
     <h2>
       In order to publish your own articles you need to be an authenticated user
     </h2>
-    {% if messages %}
-      {% for message in messages%}
-        {{ message }}
-      {% endfor %} <br>
+    {% if messages %} {% for message in messages%} {{ message }} {% endfor %}
+    <br />
     {% endif %}
-    <a href="{% url 'articles:register' %}">Register</a><br>
-    <a href="{% url 'articles:login' %}">Log In</a><br>
+    <a href="{% url 'articles:register' %}">Register</a><br />
+    <a href="{% url 'articles:login' %}">Log In</a><br />
     {% if user.is_authenticated %}
     <a href="{% url 'articles:logout' %}">Log Out</a>
     {% endif %}

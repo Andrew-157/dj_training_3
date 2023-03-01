@@ -6,6 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from .forms import NewUserForm, NewArticleForm
+from .models import Article
 
 
 def index(request):
@@ -57,7 +58,7 @@ def publish_article(request):
             form = NewArticleForm(request.user, request.POST,)
             if form.is_valid():
                 form.save()
-                return HttpResponse('Successfully published an article')
+                return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
 
         else:
             form = NewArticleForm(request.user)
@@ -67,3 +68,14 @@ def publish_article(request):
         messages.info(
             request, "You cannot publish articles as you are not authenticated")
         return render(request, 'articles/become_user.html')
+
+
+def personal(request, user_id):
+    current_user = request.user
+    if current_user.is_authenticated and current_user.id == user_id:
+        articles = Article.objects.filter(author_id=current_user.id)
+        messages.info(request, 'You successfully published new article')
+        return render(request, 'articles/personal_page.html', {'articles': articles})
+
+    else:
+        return render(request, 'articles/not_yours.html')
