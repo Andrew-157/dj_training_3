@@ -16,5 +16,6 @@ urlpatterns = [
          views.delete_article, name='delete-article'),
     path('personal/<int:user_id>/<int:article_id>/update/',
          views.update_article, name='update-article'),
-    path('public/', views.public, name='public')
+    path('public/', views.public, name='public'),
+    path('public/<int:article_id>', views.public_article, name='public-article')
 ]

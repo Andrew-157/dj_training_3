@@ -6,7 +6,7 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .forms import NewUserForm, UpdateArticleForm, UpdateArticleForm
+from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm
 from .models import Article
 
 
@@ -56,7 +56,7 @@ def logout_request(request):
 def publish_article(request):
     if request.user.is_authenticated:
         if request.method == 'POST':
-            form = UpdateArticleForm(request.user, request.POST,)
+            form = PublishArticleForm(request.user, request.POST,)
             if form.is_valid():
                 form.save()
                 messages.info(
@@ -64,7 +64,7 @@ def publish_article(request):
                 return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
 
         else:
-            form = UpdateArticleForm(request.user)
+            form = PublishArticleForm(request.user)
         return render(request, 'articles/publish_article.html', {'form': form})
 
     else:
@@ -76,7 +76,8 @@ def publish_article(request):
 def personal(request, user_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
-        articles = Article.objects.filter(author_id=current_user.id)
+        articles = Article.objects.filter(
+            author_id=current_user.id).order_by('-pub_date')
         return render(request, 'articles/personal_page.html', {'articles': articles})
 
     else:
@@ -136,8 +137,18 @@ def update_article(request, user_id, article_id):
 
 def public(request):
     articles_list = Article.objects.select_related(
-        'author').order_by('pub_date').all()
+        'author').order_by('-pub_date').all()
     paginator = Paginator(articles_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'articles/public.html', {'page_obj': page_obj})
+
+
+def public_article(request, article_id):
+    article = Article.objects.select_related(
+        'author').filter(id=article_id).first()
+    if not article:
+        return render(request, 'articles/not_exists.html')
+
+    else:
+        return render(request, 'articles/public_article.html', {'article': article})
