@@ -12,33 +12,40 @@ class NewUserForm(UserCreationForm):
         fields = ['username', 'email', 'password1', 'password2']
 
 
-class NewArticleForm(forms.ModelForm):
+class PublishArticleForm(forms.ModelForm):
 
-    def __init__(self, data: dict, *args, **kwargs):
-        self.user = data['user']
-        if 'article' in data:
-            self.article = data['article']
-        else:
-            self.article = None
-        super(NewArticleForm, self).__init__(*args, **kwargs)
+    def __init__(self, user, *args, **kwargs):
+        self.user = user
+        super(PublishArticleForm, self).__init__(*args, **kwargs)
 
     class Meta:
         model = Article
         exclude = ['author', 'pub_date']
 
     def save(self):
-        if not self.article:
-            topic = self.cleaned_data['topic']
-            content = self.cleaned_data['content']
-            author = self.user
-            article = Article(topic=topic, content=content, author=author)
-            article.save()
-        else:
-            topic = self.cleaned_data['topic']
-            content = self.cleaned_data['content']
-            author = self.user
-            article = Article.objects.get(pk=self.article)
-            article.topic = topic
-            article.content = content
-            article.author = author
-            article.save()
+        topic = self.cleaned_data['topic']
+        content = self.cleaned_data['content']
+        author = self.user
+        article = Article(topic=topic, content=content, author=author)
+        article.save()
+
+
+class UpdateArticleForm(forms.ModelForm):
+    def __init__(self, user, article, *args, **kwargs):
+        self.user = user
+        self.article = article
+        super(UpdateArticleForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Article
+        exclude = ['author', 'pub_date']
+
+    def save(self):
+        topic = self.cleaned_data['topic']
+        content = self.cleaned_data['content']
+        author = self.user
+        article_to_update = Article.objects.get(pk=self.article)
+        article_to_update.topic = topic
+        article_to_update.content = content
+        article_to_update.author = author
+        article_to_update.save()

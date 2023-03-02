@@ -5,7 +5,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .forms import NewUserForm, NewArticleForm
+from .forms import NewUserForm, UpdateArticleForm, UpdateArticleForm
 from .models import Article
 
 
@@ -54,10 +54,8 @@ def logout_request(request):
 
 def publish_article(request):
     if request.user.is_authenticated:
-        data = {}
-        data['user'] = request.user
         if request.method == 'POST':
-            form = NewArticleForm(data, request.POST,)
+            form = UpdateArticleForm(request.user, request.POST,)
             if form.is_valid():
                 form.save()
                 messages.info(
@@ -65,7 +63,7 @@ def publish_article(request):
                 return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
 
         else:
-            form = NewArticleForm(data)
+            form = UpdateArticleForm(request.user)
         return render(request, 'articles/publish_article.html', {'form': form})
 
     else:
@@ -113,16 +111,14 @@ def delete_article(request, user_id, article_id):
 def update_article(request, user_id, article_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
-        data = {}
-        data['user'] = current_user
         article = Article.objects.filter(id=article_id).first()
         if article:
             if article.author_id != current_user.id:
                 return render(request, 'articles/not_yours.html')
-            data['article'] = article.id
             if request.method == 'POST':
-                form = NewArticleForm(
-                    data,
+                form = UpdateArticleForm(
+                    current_user,
+                    article_id,
                     request.POST,
                     instance=article)
                 if form.is_valid():
@@ -132,5 +128,6 @@ def update_article(request, user_id, article_id):
                     return HttpResponseRedirect(reverse('articles:personal-article', args=(current_user.id,
                                                                                            article_id, )))
             else:
-                form = NewArticleForm(data, instance=article)
+                form = UpdateArticleForm(current_user,
+                                         article_id, instance=article)
                 return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
