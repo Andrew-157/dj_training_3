@@ -73,29 +73,6 @@ def publish_article(request):
         return render(request, 'articles/become_user.html')
 
 
-def personal(request, user_id):
-    current_user = request.user
-    if current_user.is_authenticated and current_user.id == user_id:
-        articles = Article.objects.filter(
-            author_id=current_user.id).order_by('-pub_date')
-        return render(request, 'articles/personal_page.html', {'articles': articles})
-
-    else:
-        return render(request, 'articles/not_yours.html')
-
-
-def personal_article(request, user_id, article_id):
-    current_user = request.user
-    if current_user.is_authenticated and current_user.id == user_id:
-        article = Article.objects.filter(id=article_id).first()
-        if article:
-            if article.author_id != current_user.id:
-                return render(request, 'articles/not_yours.html')
-            return render(request, 'articles/personal_article.html', {'article': article})
-        else:
-            return render(request, 'articles/not_exists.html')
-
-
 def delete_article(request, user_id, article_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
@@ -141,7 +118,7 @@ def public(request):
     paginator = Paginator(articles_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'articles/public.html', {'page_obj': page_obj})
+    return render(request, 'articles/public_page.html', {'page_obj': page_obj})
 
 
 def public_article(request, article_id):
@@ -152,3 +129,29 @@ def public_article(request, article_id):
 
     else:
         return render(request, 'articles/public_article.html', {'article': article})
+
+
+def personal(request, user_id):
+    current_user = request.user
+    if current_user.is_authenticated and current_user.id == user_id:
+        articles_list = Article.objects.filter(
+            author_id=current_user.id).order_by('-pub_date')
+        paginator = Paginator(articles_list, 5)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        return render(request, 'articles/personal_page.html', {'page_obj': page_obj})
+
+    else:
+        return render(request, 'articles/not_yours.html')
+
+
+def personal_article(request, user_id, article_id):
+    current_user = request.user
+    if current_user.is_authenticated and current_user.id == user_id:
+        article = Article.objects.filter(id=article_id).first()
+        if article:
+            if article.author_id != current_user.id:
+                return render(request, 'articles/not_yours.html')
+            return render(request, 'articles/personal_article.html', {'article': article})
+        else:
+            return render(request, 'articles/not_exists.html')

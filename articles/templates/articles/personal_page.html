@@ -13,13 +13,16 @@
     <title>Your personal page</title>
   </head>
   <body>
-    {% load crispy_forms_tags %}
+    {% load crispy_forms_tags %} {% if page_obj %}
     <div class="container py-5">
       {% if messages %} {% for message in messages %}
       <p>{{ message }}</p>
-      {% endfor %} {% endif %} {% if articles %}
-      <h1>Your published articles</h1>
-      {% for article in articles %}
+      {% endfor %} {% endif %}
+      <h1>Your Published articles</h1>
+      <a href="{% url 'articles:publish-article' %}"
+        >Publish new article here</a
+      >
+      {% for article in page_obj %}
       <h2>Topic: {{ article.topic }}</h2>
       <p>Content:</p>
       <p>{{ article.content }}</p>
@@ -32,9 +35,29 @@
         {% csrf_token %}
         <button class="btn btn-primary" type="submit">Delete article</button>
       </form>
-      {% endfor %} {% else %}
-      <p>Looks like you haven't published anything yet</p>
-      {% endif %}
+      {% endfor %}
     </div>
+    <div class="pagination" class="container py-5">
+      <span class="step-links">
+        {% if page_obj.has_previous %}
+        <a href="?page=1">&laquo; first</a>
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+          Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next</a>
+        <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a>
+        {% endif %}
+      </span>
+    </div>
+    {% else %}
+    <div class="container py-5">
+      <h2>Looks like you haven't published anything yet</h2>
+    </div>
+    {% endif %}
   </body>
 </html>
