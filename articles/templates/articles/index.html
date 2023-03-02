@@ -20,12 +20,11 @@
         LIGMA is a Website for publication, reading and discussing articles
         about anything you want
       </p>
-      <a href="">See recent articles published by our users</a>
-      <br>
-      {% if messages %} 
-        {% for message in messages%} 
-          {{ message }} 
-        {% endfor %}
+      <a href="{% url 'articles:public' %}"
+        >See recent articles published by our users</a
+      >
+      <br />
+      {% if messages %} {% for message in messages%} {{ message }} {% endfor %}
       {% endif %}
       <br />
       {% if user.is_authenticated %}

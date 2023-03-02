@@ -5,6 +5,7 @@ from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
+from django.core.paginator import Paginator
 from .forms import NewUserForm, UpdateArticleForm, UpdateArticleForm
 from .models import Article
 
@@ -131,3 +132,12 @@ def update_article(request, user_id, article_id):
                 form = UpdateArticleForm(current_user,
                                          article_id, instance=article)
                 return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
+
+
+def public(request):
+    articles_list = Article.objects.select_related(
+        'author').order_by('pub_date').all()
+    paginator = Paginator(articles_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'articles/public.html', {'page_obj': page_obj})
