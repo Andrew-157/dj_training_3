@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Article
+from .models import Article, Comment
 
 
 class NewUserForm(UserCreationForm):
@@ -49,3 +49,22 @@ class UpdateArticleForm(forms.ModelForm):
         article_to_update.content = content
         article_to_update.author = author
         article_to_update.save()
+
+
+class LeaveCommentForm(forms.ModelForm):
+    def __init__(self, user, article, *args, **kwargs):
+        self.user = user
+        self.article = article
+        super(LeaveCommentForm, self).__init__(*args, **kwargs)
+
+    class Meta:
+        model = Comment
+        exclude = ['commentator', 'article', 'pub_date']
+
+    def save(self):
+        commentator = self.user
+        article = self.article
+        content = self.cleaned_data['content']
+        comment = Comment(commentator=commentator,
+                          article=article, content=content)
+        comment.save()

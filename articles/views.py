@@ -6,8 +6,8 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm
-from .models import Article
+from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
+from .models import Article, Comment
 
 
 def index(request):
@@ -112,7 +112,7 @@ def update_article(request, user_id, article_id):
                 return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
 
 
-def public(request):
+def public_page(request):
     articles_list = Article.objects.select_related(
         'author').order_by('-pub_date').all()
     paginator = Paginator(articles_list, 5)
@@ -124,14 +124,38 @@ def public(request):
 def public_article(request, article_id):
     article = Article.objects.select_related(
         'author').filter(id=article_id).first()
+    comments = Comment.objects.select_related('commentator').filter(
+        article=article).order_by('-pub_date').all()
     if not article:
         return render(request, 'articles/not_exists.html')
 
     else:
-        return render(request, 'articles/public_article.html', {'article': article})
+        return render(request, 'articles/public_article.html', {'article': article, 'comments': comments})
 
 
-def personal(request, user_id):
+def leave_comment(request, article_id):
+    current_user = request.user
+    if not current_user.is_authenticated:
+        messages.info(
+            request, 'You cannot leave comment, you are not authenticated')
+        return render(request, 'articles/become_user.html')
+    else:
+        article = Article.objects.filter(
+            pk=article_id).select_related('author').first()
+        if not article:
+            return render(request, 'articles/not_exists.html')
+        else:
+            if request.method == 'POST':
+                form = LeaveCommentForm(current_user, article, request.POST)
+                if form.is_valid():
+                    form.save()
+                    return HttpResponseRedirect(reverse('articles:public-article', args=(article_id, )))
+            else:
+                form = LeaveCommentForm(current_user, article)
+                return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
+
+
+def personal_page(request, user_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
         articles_list = Article.objects.filter(

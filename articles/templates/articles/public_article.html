@@ -1,25 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link
       rel="stylesheet"
       href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
       integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
       crossorigin="anonymous"
     />
-    <title>Document</title>
-</head>
-<body>
+    <title>Article</title>
+  </head>
+  <body>
     {% load crispy_forms_tags %}
     <div class="container py-5">
-        <h2>Topic: {{ article.topic }}</h2>
-        <p>Author: {{ article.author }}</p>
-        <p>Content:</p>
-        <p>{{ article.content }}</p>
-        <p>Publication date: {{ article.pub_date.date }}</p>
+      <h2>Topic: {{ article.topic }}</h2>
+      <p>Author: {{ article.author }}</p>
+      <p>Content:</p>
+      <p>{{ article.content }}</p>
+      <p>Publication date: {{ article.pub_date.date }}</p>
+      <h3>Comment section</h3>
+      <a href="{% url 'articles:leave-comment' article.id %}">You can leave your comment here</a>
+      {% if comments %} {% for comment in comments %}
+      <div class="container py-5">
+        <p>Comment: {{ comment.content }}</p>
+        <p>Left by {{ comment.commentator }} {{ comment.pub_date.date }}</p>
+      </div>
+      {% endfor %} 
+      {% else %}
+      <p>No comments left yet</p>
+      {% endif %}
     </div>
-</body>
+  </body>
 </html>
