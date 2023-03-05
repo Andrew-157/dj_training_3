@@ -199,21 +199,23 @@ def leave_like(request, article_id):
         ).first()
         if reaction:
             if reaction.value == 1:
-                # if someone hits like button, but it is already like, we change it to no reaction
-                reaction.value = 0
-                reaction.save()
+                # if someone hits like button, but it is already like, we delete this reaction
+                reaction.delete()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
-            elif reaction.value == -1 or reaction.value == 0:
-                # if value of reaction for current user is dislike or no reaction,
+            elif reaction.value == -1:
+                # if value of reaction for current user is dislike ,
                 # then hitting like button value of reaction becomes 1 (like value)
                 reaction.value = 1
                 reaction.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
         else:
+            # if user hasn't left any reaction up to this moment
+            # then hitting like button makes reaction like with value 1
             like = Reaction(author=current_user, article=article, value=1)
             like.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
-    return render(request, 'articles/not_exists.html')
+    else:
+        return render(request, 'articles/not_exists.html')
 
 
 @login_required()
@@ -226,18 +228,19 @@ def leave_dislike(request, article_id):
         ).first()
         if reaction:
             if reaction.value == -1:
-                # if someone hits like button, but it is already dislike, we change it to no reaction
-                reaction.value = 0
-                reaction.save()
+                # if someone hits dislike button, but it is already like, we delete this reaction
+                reaction.delete()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
-            elif reaction.value == 1 or reaction.value == 0:
-                # if value of reaction for current user is like or no reaction,
-                # then hitting like button value of reaction becomes -1 (dislike value)
+            elif reaction.value == 1:
+                # if value of reaction for current user is like ,
+                # then hitting dislike button value of reaction becomes -1 (dislike value)
                 reaction.value = -1
                 reaction.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
         else:
-            dislike = Reaction(author=current_user, article=article, value=1)
+            # if user hasn't left any reaction up to this moment
+            # then hitting like button makes reaction dislike with value -1
+            dislike = Reaction(author=current_user, article=article, value=-1)
             dislike.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
     return render(request, 'articles/not_exists.html')

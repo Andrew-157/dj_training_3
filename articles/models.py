@@ -19,7 +19,6 @@ class Comment(models.Model):
 
 class Reaction(models.Model):
     """ 
-    if value == 0, this means no reaction;
     if value == 1, this means user liked an article;
     if value == -1, this means user disliked an article;
     """
