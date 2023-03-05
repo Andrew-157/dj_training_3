@@ -176,6 +176,8 @@ def personal_article(request, user_id, article_id):
         if article:
             if article.author_id != current_user.id:
                 return render(request, 'articles/not_yours.html')
-            return render(request, 'articles/personal_article.html', {'article': article})
+            comments = Comment.objects.select_related('commentator').filter(
+                article=article).order_by('-pub_date').all()
+            return render(request, 'articles/personal_article.html', {'article': article, 'comments': comments})
         else:
             return render(request, 'articles/not_exists.html')
