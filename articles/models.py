@@ -12,6 +12,16 @@ class Article(models.Model):
 class Comment(models.Model):
     commentator = models.ForeignKey(User, on_delete=models.CASCADE)
     article = models.ForeignKey(
-        Article, on_delete=models.CASCADE, related_name='comments')
+        Article, on_delete=models.CASCADE)
     content = models.TextField(null=False)
     pub_date = models.DateTimeField(auto_now_add=True)
+
+
+class Like(models.Model):
+    like = models.BooleanField()
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+
+class Dislike(models.Model):
+    dislike = models.BooleanField()
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)
