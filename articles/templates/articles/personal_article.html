@@ -31,18 +31,18 @@
       </form>
       <h3>Comment section</h3>
       <a href="{% url 'articles:leave-comment' article.id %}"
-        >You can leave your comment here</a
+        >Comment your article here</a
       >
-      <!-- {% if article.comment_set.count > 0 %}
+      {% if article.comment_set.count > 0 %} 
         {% for comment in article.comment_set.all|dictsortreversed:"pub_date" %}
-            <div class="container py-5">
-              <p>Comment: {{ comment.content }}</p>
-              <p>Left by {{ comment.commentator }} {{ comment.pub_date.date }}</p>
-            </div>
-        {% endfor %}
+          <div class="container py-5">
+            <p>Comment: {{ comment.content }}</p>
+            <p>Left by {{ comment.commentator }} {{ comment.pub_date.date }}</p>
+          </div>
+        {% endfor %} 
       {% else %}
-        <p>No comments left yet</p>
-      {% endif %} -->
+      <p>No comments left yet</p>
+      {% endif %}
     </div>
   </body>
 </html>

@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
@@ -8,7 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
-from .models import Article, Comment, Like, Dislike
+from .models import Article, Comment, Reaction
 
 
 def index(request):
@@ -54,25 +55,19 @@ def logout_request(request):
     return redirect('articles:index')
 
 
+@login_required()
 def publish_article(request):
-    if request.user.is_authenticated:
-        if request.method == 'POST':
-            form = PublishArticleForm(request.user, request.POST,)
-            if form.is_valid():
-                form.save()
-                messages.info(
-                    request, 'You successfully published new article')
-                return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
-
-        else:
-            form = PublishArticleForm(request.user)
-        return render(request, 'articles/publish_article.html', {'form': form})
+    if request.method == 'POST':
+        form = PublishArticleForm(request.user, request.POST,)
+        if form.is_valid():
+            form.save()
+            messages.info(
+                request, 'You successfully published new article')
+            return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
 
     else:
-        messages.info(
-            request, "You cannot publish articles as you are not authenticated")
-        return render(request, 'articles/become_user.html')
-
+        form = PublishArticleForm(request.user)
+    return render(request, 'articles/publish_article.html', {'form': form})
 
 
 def public_page(request):
@@ -85,15 +80,32 @@ def public_page(request):
 
 
 def public_article(request, article_id):
+    current_user = request.user
     article = Article.objects.select_related(
         'author').filter(id=article_id).first()
     comments = Comment.objects.select_related('commentator').filter(
         article=article).order_by('-pub_date').all()
+    likes = Reaction.objects.filter(article=article).filter(value=1).count()
+    dislikes = Reaction.objects.filter(
+        article=article).filter(value=-1).count()
+    message_to_user = None
+    reaction = Reaction.objects.filter(
+        Q(article=article) & Q(author=current_user)
+    ).first()
+    if reaction:
+        if reaction.value == -1:
+            message_to_user = "You disliked this article"
+        elif reaction.value == 1:
+            message_to_user = "You liked this article"
     if not article:
         return render(request, 'articles/not_exists.html')
 
     else:
-        return render(request, 'articles/public_article.html', {'article': article, 'comments': comments})
+        return render(request, 'articles/public_article.html', {'article': article,
+                                                                'comments': comments,
+                                                                'likes': likes,
+                                                                'dislikes': dislikes,
+                                                                'message_to_user': message_to_user})
 
 
 @login_required()
@@ -132,7 +144,7 @@ def delete_article(request,  article_id):
             return HttpResponseRedirect(reverse('articles:personal-page'))
     else:
         return render(request, 'articles/not_exists.html')
-    
+
 
 @login_required()
 def update_article(request, article_id):
@@ -142,7 +154,8 @@ def update_article(request, article_id):
         if article.author_id != current_user.id:
             return render(request, 'articles/not_yours.html')
         if request.method == 'POST':
-            form = UpdateArticleForm(current_user, article_id, request.POST, instance=article)
+            form = UpdateArticleForm(
+                current_user, article_id, request.POST, instance=article)
             if form.is_valid():
                 form.save()
                 messages.info(
@@ -150,7 +163,7 @@ def update_article(request, article_id):
                 return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
         else:
             form = UpdateArticleForm(current_user,
-                                        article_id, instance=article)
+                                     article_id, instance=article)
             return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
 
 
@@ -170,19 +183,61 @@ def leave_comment(request, article_id):
         else:
             form = LeaveCommentForm(current_user, article)
             return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
-            
+
 
 def become_user(request):
     return render(request, 'articles/become_user.html')
 
 
+@login_required()
 def leave_like(request, article_id):
     current_user = request.user
-    if not current_user.is_authenticated:
-        messages.info(
-            request, 'You cannot like this article , you are not authenticated')
-        return render(request, 'articles/become_user.html')
-    else:
-        article = Article.objects.filter(pk=article_id).first()
-        if article:
-            ...
+    article = Article.objects.filter(pk=article_id).first()
+    if article:
+        reaction = Reaction.objects.filter(
+            Q(article=article) & Q(author=current_user)
+        ).first()
+        if reaction:
+            if reaction.value == 1:
+                # if someone hits like button, but it is already like, we change it to no reaction
+                reaction.value = 0
+                reaction.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+            elif reaction.value == -1 or reaction.value == 0:
+                # if value of reaction for current user is dislike or no reaction,
+                # then hitting like button value of reaction becomes 1 (like value)
+                reaction.value = 1
+                reaction.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+        else:
+            like = Reaction(author=current_user, article=article, value=1)
+            like.save()
+            return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+    return render(request, 'articles/not_exists.html')
+
+
+@login_required()
+def leave_dislike(request, article_id):
+    current_user = request.user
+    article = Article.objects.filter(pk=article_id).first()
+    if article:
+        reaction = Reaction.objects.filter(
+            Q(article=article) & Q(author=current_user)
+        ).first()
+        if reaction:
+            if reaction.value == -1:
+                # if someone hits like button, but it is already dislike, we change it to no reaction
+                reaction.value = 0
+                reaction.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+            elif reaction.value == 1 or reaction.value == 0:
+                # if value of reaction for current user is like or no reaction,
+                # then hitting like button value of reaction becomes -1 (dislike value)
+                reaction.value = -1
+                reaction.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+        else:
+            dislike = Reaction(author=current_user, article=article, value=1)
+            dislike.save()
+            return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+    return render(request, 'articles/not_exists.html')

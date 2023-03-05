@@ -20,12 +20,29 @@
       <p>Content:</p>
       <p>{{ article.content }}</p>
       <p>Publication date: {{ article.pub_date.date }}</p>
+      {% if message_for_user %}
+        <p> message_for_user </p>
+      {% endif %}
+      <h3>Readers reactions</h3>
+      <p>{{ likes }} likes | {{ dislikes }} dislikes</p>
+      {% if user.is_authenticated %}
+        <form action="{% url 'articles:like' article.id %}">
+          {% csrf_token %}
+          <button class="btn btn-primary" type="submit">Like</button>
+        </form>
+        <form action="{% url 'articles:dislike' article.id %}">
+          {% csrf_token %}
+          <button class="btn btn-primary" type="submit">Dislike</button>
+        </form>
+      {% else %}
+        <a href="{% url 'articles:become-user' %}">Become an authenticated user if you want to leave a comment</a>
+      {% endif %} 
       <h3>Comment section</h3>
       {% if user.is_authenticated %}
         <a href="{% url 'articles:leave-comment' article.id %}">You can leave your comment here</a>
       {% else %}
         <a href="{% url 'articles:become-user' %}">Become an authenticated user if you want to leave a comment</a>
-      {% endif %}
+      {% endif %} 
       {% if comments %} 
         {% for comment in comments %}
           <div class="container py-5">

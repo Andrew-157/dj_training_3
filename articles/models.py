@@ -17,13 +17,12 @@ class Comment(models.Model):
     pub_date = models.DateTimeField(auto_now_add=True)
 
 
-class Like(models.Model):
-    article = models.ForeignKey(Article, on_delete=models.CASCADE)
+class Reaction(models.Model):
+    """ 
+    if value == 0, this means no reaction;
+    if value == 1, this means user liked an article;
+    if value == -1, this means user disliked an article;
+    """
+    value = models.SmallIntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
-    like = models.BooleanField()
-
-
-class Dislike(models.Model):
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
-    author = models.ForeignKey(User, on_delete=models.CASCADE)
-    dislike = models.BooleanField()

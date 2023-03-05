@@ -20,5 +20,8 @@ urlpatterns = [
     path('public/<int:article_id>/', views.public_article, name='public-article'),
     path('public/<int:article_id>/comment/',
          views.leave_comment, name='leave-comment'),
-    path('become_user/', views.become_user, name='become-user')
+    path('become_user/', views.become_user, name='become-user'),
+    path('public/<int:article_id>/like/', views.leave_like, name='like'),
+    path('public/<int:article_id>/dislike/',
+         views.leave_dislike, name='dislike'),
 ]
