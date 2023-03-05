@@ -7,7 +7,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
-from .models import Article, Comment
+from .models import Article, Comment, Like, Dislike
 
 
 def index(request):
@@ -173,6 +173,7 @@ def personal_article(request, user_id, article_id):
     current_user = request.user
     if current_user.is_authenticated and current_user.id == user_id:
         article = Article.objects.filter(id=article_id).first()
+        article.comment_set.all()
         if article:
             if article.author_id != current_user.id:
                 return render(request, 'articles/not_yours.html')
@@ -181,3 +182,15 @@ def personal_article(request, user_id, article_id):
             return render(request, 'articles/personal_article.html', {'article': article, 'comments': comments})
         else:
             return render(request, 'articles/not_exists.html')
+
+
+def leave_like(request, article_id):
+    current_user = request.user
+    if not current_user.is_authenticated:
+        messages.info(
+            request, 'You cannot like this article , you are not authenticated')
+        return render(request, 'articles/become_user.html')
+    else:
+        article = Article.objects.filter(pk=article_id).first()
+        if article:
+            ...

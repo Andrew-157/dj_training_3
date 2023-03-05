@@ -18,10 +18,12 @@ class Comment(models.Model):
 
 
 class Like(models.Model):
-    like = models.BooleanField()
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    like = models.BooleanField()
 
 
 class Dislike(models.Model):
-    dislike = models.BooleanField()
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+    author = models.ForeignKey(User, on_delete=models.CASCADE)
+    dislike = models.BooleanField()
