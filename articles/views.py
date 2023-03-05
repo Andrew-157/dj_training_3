@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
@@ -73,44 +74,6 @@ def publish_article(request):
         return render(request, 'articles/become_user.html')
 
 
-def delete_article(request, user_id, article_id):
-    current_user = request.user
-    if current_user.is_authenticated and current_user.id == user_id:
-        article = Article.objects.filter(id=article_id).first()
-        if article:
-            if article.author_id != current_user.id:
-                return render(request, 'articles/not_yours.html')
-            article.delete()
-            messages.info(request, 'Article was successfully deleted')
-            return HttpResponseRedirect(reverse('articles:personal-page', args=(current_user.id, )))
-        else:
-            return render(request, 'articles/not_exists.html')
-
-
-def update_article(request, user_id, article_id):
-    current_user = request.user
-    if current_user.is_authenticated and current_user.id == user_id:
-        article = Article.objects.filter(id=article_id).first()
-        if article:
-            if article.author_id != current_user.id:
-                return render(request, 'articles/not_yours.html')
-            if request.method == 'POST':
-                form = UpdateArticleForm(
-                    current_user,
-                    article_id,
-                    request.POST,
-                    instance=article)
-                if form.is_valid():
-                    form.save()
-                    messages.info(
-                        request, 'You successfully updated this article')
-                    return HttpResponseRedirect(reverse('articles:personal-article', args=(current_user.id,
-                                                                                           article_id, )))
-            else:
-                form = UpdateArticleForm(current_user,
-                                         article_id, instance=article)
-                return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
-
 
 def public_page(request):
     articles_list = Article.objects.select_related(
@@ -133,55 +96,84 @@ def public_article(request, article_id):
         return render(request, 'articles/public_article.html', {'article': article, 'comments': comments})
 
 
+@login_required()
+def personal_page(request):
+    current_user = request.user
+    articles_list = Article.objects.filter(
+        author_id=current_user.id).order_by('-pub_date')
+    paginator = Paginator(articles_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'articles/personal_page.html', {'page_obj': page_obj})
+
+
+@login_required()
+def personal_article(request, article_id):
+    current_user = request.user
+    article = Article.objects.filter(id=article_id).first()
+    if article:
+        if article.author_id != current_user.id:
+            return render(request, 'articles/not_yours.html')
+        return render(request, 'articles/personal_article.html', {'article': article})
+    else:
+        return render(request, 'articles/not_exists.html')
+
+
+@login_required()
+def delete_article(request,  article_id):
+    current_user = request.user
+    article = Article.objects.filter(id=article_id).first()
+    if article:
+        if article.author_id != current_user.id:
+            return render(request, 'articles/not_yours.html')
+        else:
+            article.delete()
+            messages.info(request, 'Article was successfully deleted')
+            return HttpResponseRedirect(reverse('articles:personal-page'))
+    else:
+        return render(request, 'articles/not_exists.html')
+    
+
+@login_required()
+def update_article(request, article_id):
+    current_user = request.user
+    article = Article.objects.filter(id=article_id).first()
+    if article:
+        if article.author_id != current_user.id:
+            return render(request, 'articles/not_yours.html')
+        if request.method == 'POST':
+            form = UpdateArticleForm(current_user, article_id, request.POST, instance=article)
+            if form.is_valid():
+                form.save()
+                messages.info(
+                    request, 'You successfully updated this article')
+                return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
+        else:
+            form = UpdateArticleForm(current_user,
+                                        article_id, instance=article)
+            return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
+
+
+@login_required()
 def leave_comment(request, article_id):
     current_user = request.user
-    if not current_user.is_authenticated:
-        messages.info(
-            request, 'You cannot leave comment, you are not authenticated')
-        return render(request, 'articles/become_user.html')
+    article = Article.objects.filter(
+        pk=article_id).select_related('author').first()
+    if not article:
+        return render(request, 'articles/not_exists.html')
     else:
-        article = Article.objects.filter(
-            pk=article_id).select_related('author').first()
-        if not article:
-            return render(request, 'articles/not_exists.html')
+        if request.method == 'POST':
+            form = LeaveCommentForm(current_user, article, request.POST)
+            if form.is_valid():
+                form.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id, )))
         else:
-            if request.method == 'POST':
-                form = LeaveCommentForm(current_user, article, request.POST)
-                if form.is_valid():
-                    form.save()
-                    return HttpResponseRedirect(reverse('articles:public-article', args=(article_id, )))
-            else:
-                form = LeaveCommentForm(current_user, article)
-                return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
+            form = LeaveCommentForm(current_user, article)
+            return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
+            
 
-
-def personal_page(request, user_id):
-    current_user = request.user
-    if current_user.is_authenticated and current_user.id == user_id:
-        articles_list = Article.objects.filter(
-            author_id=current_user.id).order_by('-pub_date')
-        paginator = Paginator(articles_list, 5)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        return render(request, 'articles/personal_page.html', {'page_obj': page_obj})
-
-    else:
-        return render(request, 'articles/not_yours.html')
-
-
-def personal_article(request, user_id, article_id):
-    current_user = request.user
-    if current_user.is_authenticated and current_user.id == user_id:
-        article = Article.objects.filter(id=article_id).first()
-        article.comment_set.all()
-        if article:
-            if article.author_id != current_user.id:
-                return render(request, 'articles/not_yours.html')
-            comments = Comment.objects.select_related('commentator').filter(
-                article=article).order_by('-pub_date').all()
-            return render(request, 'articles/personal_article.html', {'article': article, 'comments': comments})
-        else:
-            return render(request, 'articles/not_exists.html')
+def become_user(request):
+    return render(request, 'articles/become_user.html')
 
 
 def leave_like(request, article_id):

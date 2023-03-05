@@ -32,9 +32,7 @@
         >Publish new article here</a
       >
       <br />
-      <a href="{% url 'articles:personal-page' user.id %}"
-        >See your articles here</a
-      >
+      <a href="{% url 'articles:personal-page'%}">See your articles here</a>
       <br />
       <a href="{% url 'articles:logout' %}">Log Out</a>
       {% else %}

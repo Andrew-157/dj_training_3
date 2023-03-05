@@ -21,26 +21,28 @@
       <h3>Content:</h3>
       <p>{{ article.content }}</p>
       <p>Publication date: {{ article.pub_date.date }}</p>
-      <a href="{% url 'articles:update-article' user.id article.id %}"
+      <a href="{% url 'articles:update-article' article.id %}"
         >Wanna change something about this article?</a
       >
       <p>Click this button if you want to delete this article:</p>
-      <form action="{% url 'articles:delete-article' user.id article.id %}">
+      <form action="{% url 'articles:delete-article' article.id %}">
         {% csrf_token %}
         <button class="btn btn-primary" type="submit">Delete article</button>
       </form>
       <h3>Comment section</h3>
-      <a href="{% url 'articles:leave-comment' article.id %}">You can leave your comment here</a>
-      {% if comments %} 
-        {% for comment in comments %}
-          <div class="container py-5">
-            <p>Comment: {{ comment.content }}</p>
-            <p>Left by {{ comment.commentator }} {{ comment.pub_date.date }}</p>
-          </div>
-        {% endfor %} 
+      <a href="{% url 'articles:leave-comment' article.id %}"
+        >You can leave your comment here</a
+      >
+      <!-- {% if article.comment_set.count > 0 %}
+        {% for comment in article.comment_set.all|dictsortreversed:"pub_date" %}
+            <div class="container py-5">
+              <p>Comment: {{ comment.content }}</p>
+              <p>Left by {{ comment.commentator }} {{ comment.pub_date.date }}</p>
+            </div>
+        {% endfor %}
       {% else %}
         <p>No comments left yet</p>
-      {% endif %}
+      {% endif %} -->
     </div>
   </body>
 </html>
