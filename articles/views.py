@@ -9,7 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
-from .models import Article, Comment, Reaction
+from .models import Article, Comment, Reaction, ArticleReading
 
 
 def index(request):
@@ -89,7 +89,14 @@ def public_article(request, article_id):
     dislikes = Reaction.objects.filter(
         article=article).filter(value=-1).count()
     message_to_user = None
+    article_read = ArticleReading.objects.filter(article=article).first()
     if current_user.is_authenticated:
+        if not article_read:
+            article_read = ArticleReading(times_read=1, article=article)
+            article_read.save()
+        else:
+            article_read.times_read += 1
+            article_read.save()
         reaction = Reaction.objects.filter(
             Q(article=article) & Q(author=current_user)
         ).first()
@@ -106,7 +113,8 @@ def public_article(request, article_id):
                                                                 'comments': comments,
                                                                 'likes': likes,
                                                                 'dislikes': dislikes,
-                                                                'message_to_user': message_to_user})
+                                                                'message_to_user': message_to_user,
+                                                                'times_read': article_read.times_read})
 
 
 @login_required()

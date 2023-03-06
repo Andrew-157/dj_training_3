@@ -23,6 +23,7 @@
       {% if message_for_user %}
       <p>message_for_user</p>
       {% endif %}
+      <p>This article was read {{ times_read }} times</p>
       <h3>Readers reactions</h3>
       <p>{{ likes }} likes | {{ dislikes }} dislikes</p>
       {% if user.is_authenticated %}
@@ -35,9 +36,7 @@
         <button class="btn btn-primary" type="submit">Dislike</button>
       </form>
       {% else %}
-      <a href="{% url 'articles:become-user' %}"
-        >Become an authenticated user if you want to leave a reaction</a
-      >
+        <a href="{% url 'articles:become-user' %}">Become an authenticated user if you want to leave a reaction</a>
       {% endif %}
       <h3>Comment section</h3>
       {% if user.is_authenticated %}
