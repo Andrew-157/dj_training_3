@@ -1,15 +1,17 @@
 from django.db.models import Q
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
+from taggit.models import Tag
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
 from .models import Article, Comment, Reaction, ArticleReading
+from django.template.defaultfilters import slugify
 
 
 def index(request):
@@ -60,10 +62,11 @@ def publish_article(request):
     if request.method == 'POST':
         form = PublishArticleForm(request.user, request.POST,)
         if form.is_valid():
+            # form.save()
             form.save()
             messages.info(
                 request, 'You successfully published new article')
-            return HttpResponseRedirect(reverse('articles:personal-page', args=(request.user.id, )))
+            return HttpResponseRedirect(reverse('articles:personal-page'))
 
     else:
         form = PublishArticleForm(request.user)
