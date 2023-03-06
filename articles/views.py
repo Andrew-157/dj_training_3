@@ -80,35 +80,57 @@ def public_page(request):
 
 
 def public_article(request, article_id):
+    # check the current user for further usage
     current_user = request.user
+    # find an article with the given id
     article = Article.objects.select_related(
         'author').filter(id=article_id).first()
-    comments = Comment.objects.select_related('commentator').filter(
-        article=article).order_by('-pub_date').all()
-    likes = Reaction.objects.filter(article=article).filter(value=1).count()
-    dislikes = Reaction.objects.filter(
-        article=article).filter(value=-1).count()
-    message_to_user = None
-    article_read = ArticleReading.objects.filter(article=article).first()
-    if current_user.is_authenticated:
-        if not article_read:
-            article_read = ArticleReading(times_read=1, article=article)
-            article_read.save()
-        else:
-            article_read.times_read += 1
-            article_read.save()
-        reaction = Reaction.objects.filter(
-            Q(article=article) & Q(author=current_user)
-        ).first()
-        if reaction:
-            if reaction.value == -1:
-                message_to_user = "You disliked this article"
-            elif reaction.value == 1:
-                message_to_user = "You liked this article"
+    # article was not found
     if not article:
+        # return an appropriate page
         return render(request, 'articles/not_exists.html')
-
+    # article was found
     else:
+        # find comments associated with the article
+        comments = Comment.objects.select_related('commentator').filter(
+            article=article).order_by('-pub_date').all()
+        # find likes associated with the article
+        likes = Reaction.objects.filter(
+            article=article).filter(value=1).count()
+        # find dislikes associated with the article
+        dislikes = Reaction.objects.filter(
+            article=article).filter(value=-1).count()
+        # create variable message_to_user to let them know about their reaction on an article(like or dislike)
+        message_to_user = None
+        # find how many times an article was read
+        article_read = ArticleReading.objects.filter(article=article).first()
+        # if user is not authenticated
+        if current_user.is_authenticated:
+            # if this is the first time someone reads an article
+            if not article_read:
+                # create ArticleReading object with times_read attribute assigned to one
+                article_read = ArticleReading(times_read=1, article=article)
+                article_read.save()
+            # if this is not the first time someone reads an article
+            else:
+                # add 1 to times_read attribute of the article_read object
+                article_read.times_read += 1
+                article_read.save()
+            # find reaction left by the current user on this article
+            reaction = Reaction.objects.filter(
+                Q(article=article) & Q(author=current_user)
+            ).first()
+            # if reaction object exists
+            if reaction:
+                # if value attribute of reaction object equals -1
+                if reaction.value == -1:
+                    # assign message_to_user variable to this
+                    message_to_user = "You disliked this article"
+                # if value attribute of reaction object equals 1
+                elif reaction.value == 1:
+                    # assign message_to_user variable to this
+                    message_to_user = "You liked this article"
+        # return appropriate page with context needed
         return render(request, 'articles/public_article.html', {'article': article,
                                                                 'comments': comments,
                                                                 'likes': likes,
