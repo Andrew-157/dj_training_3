@@ -25,3 +25,11 @@ class Reaction(models.Model):
     value = models.SmallIntegerField(default=0)
     author = models.ForeignKey(User, on_delete=models.CASCADE)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+
+class ArticleReading(models.Model):
+    """
+    Model for tracking how many times an article was read
+    """
+    times_read = models.PositiveBigIntegerField(default=0)
+    article = models.ForeignKey(Article, on_delete=models.CASCADE)

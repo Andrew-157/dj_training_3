@@ -204,7 +204,7 @@ def leave_like(request, article_id):
                 reaction.delete()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
             elif reaction.value == -1:
-                # if value of reaction for current user is dislike ,
+                # if value of reaction for current user is dislike (-1),
                 # then hitting like button value of reaction becomes 1 (like value)
                 reaction.value = 1
                 reaction.save()
@@ -233,7 +233,7 @@ def leave_dislike(request, article_id):
                 reaction.delete()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
             elif reaction.value == 1:
-                # if value of reaction for current user is like ,
+                # if value of reaction for current user is like (1),
                 # then hitting dislike button value of reaction becomes -1 (dislike value)
                 reaction.value = -1
                 reaction.save()
