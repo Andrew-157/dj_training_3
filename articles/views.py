@@ -89,14 +89,15 @@ def public_article(request, article_id):
     dislikes = Reaction.objects.filter(
         article=article).filter(value=-1).count()
     message_to_user = None
-    reaction = Reaction.objects.filter(
-        Q(article=article) & Q(author=current_user)
-    ).first()
-    if reaction:
-        if reaction.value == -1:
-            message_to_user = "You disliked this article"
-        elif reaction.value == 1:
-            message_to_user = "You liked this article"
+    if current_user.is_authenticated:
+        reaction = Reaction.objects.filter(
+            Q(article=article) & Q(author=current_user)
+        ).first()
+        if reaction:
+            if reaction.value == -1:
+                message_to_user = "You disliked this article"
+            elif reaction.value == 1:
+                message_to_user = "You liked this article"
     if not article:
         return render(request, 'articles/not_exists.html')
 
