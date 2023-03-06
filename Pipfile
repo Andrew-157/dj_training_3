@@ -8,6 +8,7 @@ django = "*"
 django-debug-toolbar = "*"
 django-crispy-forms = "*"
 crispy-bootstrap4 = "*"
+django-taggit = "*"
 
 [dev-packages]
 autopep8 = "*"
