@@ -8,10 +8,8 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
-from taggit.models import Tag
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
 from .models import Article, Comment, Reaction, ArticleReading
-from django.template.defaultfilters import slugify
 
 
 def index(request):
@@ -157,34 +155,36 @@ def personal_page(request):
 def personal_article(request, article_id):
     current_user = request.user
     article = Article.objects.filter(id=article_id).first()
-    if article:
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
         if article.author_id != current_user.id:
             return render(request, 'articles/not_yours.html')
         return render(request, 'articles/personal_article.html', {'article': article})
-    else:
-        return render(request, 'articles/not_exists.html')
 
 
 @login_required()
 def delete_article(request,  article_id):
     current_user = request.user
     article = Article.objects.filter(id=article_id).first()
-    if article:
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
         if article.author_id != current_user.id:
             return render(request, 'articles/not_yours.html')
         else:
             article.delete()
             messages.info(request, 'Article was successfully deleted')
             return HttpResponseRedirect(reverse('articles:personal-page'))
-    else:
-        return render(request, 'articles/not_exists.html')
 
 
 @login_required()
 def update_article(request, article_id):
     current_user = request.user
     article = Article.objects.filter(id=article_id).first()
-    if article:
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
         if article.author_id != current_user.id:
             return render(request, 'articles/not_yours.html')
         if request.method == 'POST':
@@ -210,13 +210,38 @@ def leave_comment(request, article_id):
         return render(request, 'articles/not_exists.html')
     else:
         if request.method == 'POST':
-            form = LeaveCommentForm(current_user, article, request.POST)
+            form = LeaveCommentForm(request.POST)
             if form.is_valid():
+                form.instance.commentator = current_user
+                form.instance.article = article
                 form.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id, )))
         else:
-            form = LeaveCommentForm(current_user, article)
+            form = LeaveCommentForm()
             return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
+
+
+@login_required()
+def author_comment(request, article_id):
+    current_user = request.user
+    article = Article.objects.filter(
+        pk=article_id).select_related('author').first()
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
+        if article.author_id != current_user.id:
+            return render(request, 'articles/not_yours.html')
+        else:
+            if request.method == 'POST':
+                form = LeaveCommentForm(request.POST)
+                if form.is_valid():
+                    form.instance.commentator = current_user
+                    form.instance.article = article
+                    form.save()
+                    return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
+            else:
+                form = LeaveCommentForm()
+                return render(request, 'articles/author_comment.html', {'form': form, 'article': article})
 
 
 def become_user(request):
@@ -227,7 +252,9 @@ def become_user(request):
 def leave_like(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
-    if article:
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
         reaction = Reaction.objects.filter(
             Q(article=article) & Q(author=current_user)
         ).first()
@@ -248,15 +275,15 @@ def leave_like(request, article_id):
             like = Reaction(author=current_user, article=article, value=1)
             like.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
-    else:
-        return render(request, 'articles/not_exists.html')
 
 
 @login_required()
 def leave_dislike(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
-    if article:
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
         reaction = Reaction.objects.filter(
             Q(article=article) & Q(author=current_user)
         ).first()
@@ -277,4 +304,3 @@ def leave_dislike(request, article_id):
             dislike = Reaction(author=current_user, article=article, value=-1)
             dislike.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
-    return render(request, 'articles/not_exists.html')

@@ -37,18 +37,13 @@ class UpdateArticleForm(forms.ModelForm):
 
 
 class LeaveCommentForm(forms.ModelForm):
-    def __init__(self, user, article, *args, **kwargs):
-        self.user = user
-        self.article = article
-        super(LeaveCommentForm, self).__init__(*args, **kwargs)
-
     class Meta:
         model = Comment
         exclude = ['commentator', 'article', 'pub_date']
 
     def save(self):
-        commentator = self.user
-        article = self.article
+        commentator = self.instance.commentator
+        article = self.instance.article
         content = self.cleaned_data['content']
         comment = Comment(commentator=commentator,
                           article=article, content=content)

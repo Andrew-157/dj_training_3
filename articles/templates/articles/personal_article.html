@@ -30,9 +30,7 @@
         <button class="btn btn-primary" type="submit">Delete article</button>
       </form>
       <h3>Comment section</h3>
-      <a href="{% url 'articles:leave-comment' article.id %}"
-        >Comment your article here</a
-      >
+      <a href="{% url 'articles:author-comment' article.id %}">Comment your article here</a>
       {% if article.comment_set.count > 0 %} 
         {% for comment in article.comment_set.all|dictsortreversed:"pub_date" %}
           <div class="container py-5">
@@ -41,7 +39,7 @@
           </div>
         {% endfor %} 
       {% else %}
-      <p>No comments left yet</p>
+        <p>No comments left yet</p>
       {% endif %}
     </div>
   </body>
