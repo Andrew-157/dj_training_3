@@ -63,7 +63,6 @@ def publish_article(request):
             obj = form.save(commit=False)
             form.instance.author = request.user
             obj.save()
-            # form.save()
             form.save_m2m()
             messages.info(
                 request, 'You successfully published new article')
@@ -75,12 +74,23 @@ def publish_article(request):
 
 
 def public_page(request):
-    articles_list = Article.objects.select_related(
-        'author').order_by('-pub_date').all()
+    articles_list = Article.objects.select_related('author').\
+        prefetch_related('tags').order_by('-pub_date').all()
     paginator = Paginator(articles_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     return render(request, 'articles/public_page.html', {'page_obj': page_obj})
+
+
+@login_required()
+def personal_page(request):
+    current_user = request.user
+    articles_list = Article.objects.filter(author_id=current_user.id).\
+        prefetch_related('tags').order_by('-pub_date')
+    paginator = Paginator(articles_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'articles/personal_page.html', {'page_obj': page_obj})
 
 
 def public_article(request, article_id):
@@ -143,15 +153,6 @@ def public_article(request, article_id):
                                                                 'times_read': article_read.times_read})
 
 
-@login_required()
-def personal_page(request):
-    current_user = request.user
-    articles_list = Article.objects.filter(
-        author_id=current_user.id).order_by('-pub_date')
-    paginator = Paginator(articles_list, 5)
-    page_number = request.GET.get('page')
-    page_obj = paginator.get_page(page_number)
-    return render(request, 'articles/personal_page.html', {'page_obj': page_obj})
 
 
 @login_required()

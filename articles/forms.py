@@ -23,7 +23,7 @@ class UpdateArticleForm(forms.ModelForm):
 
     class Meta:
         model = Article
-        exclude = ['author', 'pub_date']
+        exclude = ['author', 'pub_date', 'tags']
 
     def save(self):
         topic = self.cleaned_data['topic']

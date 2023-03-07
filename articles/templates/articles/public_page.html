@@ -17,15 +17,18 @@
     <div class="container py-5">
       <h1>LIGMA Articles</h1>
       {% for article in page_obj %}
-      <h2>Topic: {{ article.topic }}</h2>
-      <p>Author: {{ article.author }}</p>
-      <p>Content:</p>
-      <p>{{ article.content }}</p>
-      <p>Publication date: {{ article.pub_date.date }}</p>
-      <form action="{% url 'articles:public-article' article.id %}">
-        {% csrf_token %}
-        <button class="btn btn-primary" type="submit">Read</button>
-      </form>
+        <h2>Topic: {{ article.topic }}</h2>
+        <p>Author: {{ article.author }}</p>
+        {% if article.tags.count > 0%}
+          {% for tag in article.tags.all %}
+            <a href="">#{{ tag }}</a>
+          {% endfor %}
+        {% endif %}
+        <p>Publication date: {{ article.pub_date.date }}</p>
+        <form action="{% url 'articles:public-article' article.id %}">
+          {% csrf_token %}
+          <button class="btn btn-primary" type="submit">Read</button>
+        </form>
       {% endfor %}
     </div>
     <div class="pagination" class="container py-5">
