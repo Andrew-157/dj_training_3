@@ -139,3 +139,5 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 LOGIN_URL = reverse_lazy('articles:become-user')
+
+TAGGIT_CASE_INSENSITIVE = True

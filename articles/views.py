@@ -60,16 +60,16 @@ def logout_request(request):
 @login_required()
 def publish_article(request):
     if request.method == 'POST':
-        form = PublishArticleForm(request.user, request.POST,)
+        form = PublishArticleForm(request.POST)
         if form.is_valid():
-            # form.save()
+            form.instance.author = request.user
             form.save()
             messages.info(
                 request, 'You successfully published new article')
             return HttpResponseRedirect(reverse('articles:personal-page'))
 
     else:
-        form = PublishArticleForm(request.user)
+        form = PublishArticleForm()
     return render(request, 'articles/publish_article.html', {'form': form})
 
 
@@ -188,16 +188,16 @@ def update_article(request, article_id):
         if article.author_id != current_user.id:
             return render(request, 'articles/not_yours.html')
         if request.method == 'POST':
-            form = UpdateArticleForm(
-                current_user, article_id, request.POST, instance=article)
+            form = UpdateArticleForm(request.POST, instance=article)
             if form.is_valid():
+                form.instance.author = request.user
+                form.instance.article = article_id
                 form.save()
                 messages.info(
                     request, 'You successfully updated this article')
                 return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
         else:
-            form = UpdateArticleForm(current_user,
-                                     article_id, instance=article)
+            form = UpdateArticleForm(instance=article)
             return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
 
 
