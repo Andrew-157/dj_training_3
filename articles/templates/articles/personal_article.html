@@ -15,22 +15,30 @@
   <body>
     {% load crispy_forms_tags %}
     <div class="container py-5">
-      {% if messages %} {% for message in messages %} {{ message }} {% endfor %}
+      {% if messages %} 
+        {% for message in messages %} 
+          {{ message }} 
+        {% endfor %}
       {% endif %}
       <h2>Topic: {{ article.topic }}</h2>
       <h3>Content:</h3>
       <p>{{ article.content }}</p>
       <p>Publication date: {{ article.pub_date.date }}</p>
-      <a href="{% url 'articles:update-article' article.id %}"
-        >Wanna change something about this article?</a
-      >
+      <a href="{% url 'articles:update-article' article.id %}">Edit your article</a>
       <p>Click this button if you want to delete this article:</p>
       <form action="{% url 'articles:delete-article' article.id %}">
         {% csrf_token %}
         <button class="btn btn-primary" type="submit">Delete article</button>
       </form>
+      <p>This article was read {{ times_read }} times</p>
+      <h3>Readers reactions</h3>
+      {% if message_to_user %}
+        <p>{{message_to_user}}</p>
+      {% endif %}
+      <p>{{ likes }} likes | {{ dislikes }} dislikes</p>
       <h3>Comment section</h3>
       <a href="{% url 'articles:author-comment' article.id %}">Comment your article here</a>
+
       {% if article.comment_set.count > 0 %} 
         {% for comment in article.comment_set.all|dictsortreversed:"pub_date" %}
           <div class="container py-5">
