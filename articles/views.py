@@ -60,8 +60,11 @@ def publish_article(request):
     if request.method == 'POST':
         form = PublishArticleForm(request.POST)
         if form.is_valid():
+            obj = form.save(commit=False)
             form.instance.author = request.user
-            form.save()
+            obj.save()
+            # form.save()
+            form.save_m2m()
             messages.info(
                 request, 'You successfully published new article')
             return HttpResponseRedirect(reverse('articles:personal-page'))
