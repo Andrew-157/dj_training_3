@@ -8,7 +8,7 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
-from taggit.models import TaggedItem
+from taggit.models import TaggedItem, Tag
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
 from .models import Article, Comment, Reaction, ArticleReading
 
@@ -108,6 +108,9 @@ def personal_article(request, article_id):
         dislikes = Reaction.objects.filter(
             article=article).filter(value=-1).count()
         article_read = ArticleReading.objects.filter(article=article).first()
+        times_read = 0
+        if article_read:
+            times_read = article_read.times_read
         message_to_user = None
         reaction = Reaction.objects.filter(
             Q(article=article) & Q(author=current_user)).first()
@@ -120,7 +123,7 @@ def personal_article(request, article_id):
                                                                   'likes': likes,
                                                                   'dislikes': dislikes,
                                                                   'message_to_user': message_to_user,
-                                                                  'times_read': article_read.times_read})
+                                                                  'times_read': times_read})
 
 
 def public_article(request, article_id):
@@ -304,8 +307,6 @@ def leave_dislike(request, article_id):
 
 
 def trending_tags(request):
-    statistics = ArticleReading.objects.select_related(
-        'article').order_by('-times_read').all()
     # find 5 newest articles and order them by how many times they were read
     # articlereading is ordered through metaclass of model ArticleReading
     # by times read in DESC order
@@ -317,3 +318,17 @@ def trending_tags(request):
         for tag in article.tags.all():
             tags.append(tag)
     return render(request, 'articles/trending_tags.html', {'tags': tags})
+
+
+def articles_through_tags(request, tag):
+    tag_object = Tag.objects.filter(name=tag).first()
+    if not tag:
+        return render(request, 'articles/not_exists.html')
+    else:
+        articles_list = Article.objects.filter(tags=tag_object).all()
+        paginator = Paginator(articles_list, 5)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        message = f'You are seeing articles with tag #{tag}'
+
+        return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})

@@ -17,7 +17,7 @@
     <div class="container py-5">
         <h1>Tags trending on Ligma for the last time:</h1>
         {% for tag in tags %}
-            <a href="">#{{tag}}</a>
+            <a href="{% url 'articles:articles-tag' tag %}">#{{tag}}</a>
         {% endfor %}
     </div>
 </body>

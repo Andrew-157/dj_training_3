@@ -13,7 +13,8 @@
     <title>Your personal page</title>
   </head>
   <body>
-    {% load crispy_forms_tags %} {% if page_obj %}
+    {% load crispy_forms_tags %} 
+    {% if page_obj %}
     <div class="container py-5">
       {% if messages %} 
         {% for message in messages %}
