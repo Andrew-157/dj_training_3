@@ -15,7 +15,7 @@
 <body>
     {% load crispy_forms_tags %}
     <div class="container py-5">
-        <h2>You are leaving comment for article of {{ article.author }} about "{{ article.topic }}"</h2>
+        <h2>You are leaving comment for article of {{ article.author }} about "{{ article.title }}"</h2>
       <form action="{% url 'articles:leave-comment' article.id %}" method="post">
         {% csrf_token %} {{ form|crispy }}
         <button class="btn btn-primary" type="submit">Leave comment</button>

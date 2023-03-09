@@ -24,7 +24,7 @@
       <h1>Your Published articles</h1>
       <a href="{% url 'articles:publish-article' %}">Publish new article here</a>
       {% for article in page_obj %}
-        <h2>Topic: {{ article.topic }}</h2>
+        <h2>Title: {{ article.title }}</h2>
         {% if article.tags.count > 0%}
           {% for tag in article.tags.all %}
             <a href="">#{{ tag }}</a>

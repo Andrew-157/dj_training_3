@@ -16,7 +16,7 @@
     {% load crispy_forms_tags %}
     <div class="container py-5">
       <h2>
-        You are leaving comment for your article about "{{article.topic }}"
+        You are leaving comment for your article about "{{article.title }}"
       </h2>
       <form action="{% url 'articles:author-comment' article.id %}" method="post">
         {% csrf_token %} 

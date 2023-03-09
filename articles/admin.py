@@ -4,7 +4,7 @@ from .models import Article
 
 @admin.register(Article)
 class MyModelAdmin(admin.ModelAdmin):
-    list_display = ['topic', 'content', 'author', 'pub_date', 'tag_list']
+    list_display = ['title', 'content', 'author', 'pub_date', 'tag_list']
 
     def get_queryset(self, request):
         return super().get_queryset(request).prefetch_related('tags')

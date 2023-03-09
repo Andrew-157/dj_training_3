@@ -20,7 +20,7 @@
         <h2>{{ message }}</h2>
       {% endif %}
       {% for article in page_obj %}
-        <h2>Topic: {{ article.topic }}</h2>
+        <h2>Title: {{ article.title }}</h2>
         <p>Author: {{ article.author }}</p>
         {% if article.tags.count > 0%}
           {% for tag in article.tags.all %}

@@ -26,11 +26,11 @@ class UpdateArticleForm(forms.ModelForm):
         exclude = ['author', 'pub_date', 'tags']
 
     def save(self):
-        topic = self.cleaned_data['topic']
+        title = self.cleaned_data['title']
         content = self.cleaned_data['content']
         author = self.instance.author
         article_to_update = Article.objects.get(pk=self.instance.article)
-        article_to_update.topic = topic
+        article_to_update.topic = title
         article_to_update.content = content
         article_to_update.author = author
         article_to_update.save()
