@@ -35,3 +35,6 @@ class ArticleReading(models.Model):
     """
     times_read = models.PositiveBigIntegerField(default=0)
     article = models.ForeignKey(Article, on_delete=models.CASCADE)
+
+    class Meta:
+        ordering = ['-times_read']

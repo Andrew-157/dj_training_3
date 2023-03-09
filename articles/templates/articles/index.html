@@ -20,28 +20,26 @@
         LIGMA is a Website for publication, reading and discussing articles
         about anything you want
       </p>
-      <a href="{% url 'articles:public' %}"
-        >See articles published by our users</a
-      >
+      <a href="{% url 'articles:public' %}">See articles published by our users</a> <br>
+      <a href="{% url 'articles:trending-tags' %}">See most popular tags on LIGMA for the last time</a>
       <br />
-      {% if messages %} {% for message in messages%} {{ message }} {% endfor %}
+      {% if messages %} 
+        {% for message in messages%} 
+          {{ message }} 
+        {% endfor %}
       {% endif %}
       <br />
       {% if user.is_authenticated %}
-      <a href="{% url 'articles:publish-article' %}"
-        >Publish new article here</a
-      >
-      <br />
-      <a href="{% url 'articles:personal-page'%}">See your articles here</a>
-      <br />
-      <a href="{% url 'articles:logout' %}">Log Out</a>
+        <a href="{% url 'articles:publish-article' %}">Publish new article here</a>
+        <br />
+        <a href="{% url 'articles:personal-page'%}">See your articles here</a>
+        <br />
+        <a href="{% url 'articles:logout' %}">Log Out</a>
       {% else %}
-      <p>
-        In order to publish your own articles you need to be an authenticated
-        user
-      </p>
-      <a href="{% url 'articles:register' %}">Register</a><br />
-      <a href="{% url 'articles:login' %}">Log In</a><br />
+        <p>In order to publish your own articles you need to be an authenticated
+        user</p>
+        <a href="{% url 'articles:register' %}">Register</a><br />
+        <a href="{% url 'articles:login' %}">Log In</a><br />
       {% endif %}
     </div>
   </body>

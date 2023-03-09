@@ -26,4 +26,5 @@ urlpatterns = [
     path('public/<int:article_id>/like/', views.leave_like, name='like'),
     path('public/<int:article_id>/dislike/',
          views.leave_dislike, name='dislike'),
+    path('public/trending-tags', views.trending_tags, name='trending-tags')
 ]

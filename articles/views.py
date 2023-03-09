@@ -1,4 +1,4 @@
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
@@ -8,6 +8,7 @@ from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
+from taggit.models import TaggedItem
 from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
 from .models import Article, Comment, Reaction, ArticleReading
 
@@ -221,8 +222,7 @@ def leave_comment(request, article_id):
 @login_required()
 def author_comment(request, article_id):
     current_user = request.user
-    article = Article.objects.filter(
-        pk=article_id).select_related('author').first()
+    article = Article.objects.filter(pk=article_id).first()
     if not article:
         return render(request, 'articles/not_exists.html')
     else:
@@ -301,3 +301,19 @@ def leave_dislike(request, article_id):
             dislike = Reaction(author=current_user, article=article, value=-1)
             dislike.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+
+
+def trending_tags(request):
+    statistics = ArticleReading.objects.select_related(
+        'article').order_by('-times_read').all()
+    # find 5 newest articles and order them by how many times they were read
+    # articlereading is ordered through metaclass of model ArticleReading
+    # by times read in DESC order
+    articles = Article.objects.\
+        order_by('-pub_date').\
+        order_by('articlereading').all()[:5]
+    tags = []
+    for article in articles:
+        for tag in article.tags.all():
+            tags.append(tag)
+    return render(request, 'articles/trending_tags.html', {'tags': tags})
