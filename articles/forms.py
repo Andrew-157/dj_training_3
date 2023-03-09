@@ -48,3 +48,7 @@ class LeaveCommentForm(forms.ModelForm):
         comment = Comment(commentator=commentator,
                           article=article, content=content)
         comment.save()
+
+
+class SearchForm(forms.Form):
+    search_string = forms.CharField(max_length=255)

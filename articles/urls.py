@@ -28,4 +28,5 @@ urlpatterns = [
          views.leave_dislike, name='dislike'),
     path('public/trending-tags', views.trending_tags, name='trending-tags'),
     path('public/<str:tag>', views.articles_through_tags, name='articles-tag'),
+    path('public/search/', views.search, name='search')
 ]

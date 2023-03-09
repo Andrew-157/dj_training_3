@@ -9,7 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
 from taggit.models import TaggedItem, Tag
-from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm
+from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm, SearchForm
 from .models import Article, Comment, Reaction, ArticleReading
 
 
@@ -332,3 +332,35 @@ def articles_through_tags(request, tag):
         message = f'You are seeing articles with tag #{tag}'
 
         return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
+
+
+def search(request):
+    if request.method == 'POST':
+        data = request.POST
+        form = SearchForm(request.POST)
+        if form.is_valid():
+            data = request.POST['search_string']
+            if data[0] == '#':
+                tag = data[1:]
+                tag_object = Tag.objects.filter(name=tag).first()
+                articles_list = Article.objects.filter(
+                    tags=tag_object).order_by('-pub_date').all()
+                message = f'{len(articles_list)} articles with #{tag} were found'
+            else:
+                articles_list = Article.objects.select_related('author').\
+                    filter(
+                        Q(title__icontains=data) |
+                        Q(content__icontains=data) |
+                        Q(author__username__contains=data)
+                ).order_by('-pub_date').all()
+
+                message = f"{len(articles_list)} articles were found that '{data}' in its title, \
+                    content or author's name"
+            paginator = Paginator(articles_list, 5)
+            page_number = request.GET.get('page')
+            page_obj = paginator.get_page(page_number)
+
+            return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
+    elif request.method == 'GET':
+        form = SearchForm()
+        return render(request, 'articles/search_for_article.html', {'form': form})
