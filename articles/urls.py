@@ -27,8 +27,11 @@ urlpatterns = [
     path('public/<int:article_id>/dislike/',
          views.leave_dislike, name='dislike'),
     path('public/tags/trending/', views.trending_tags, name='trending-tags'),
-    path('public/tags/<str:tag>/', views.articles_through_tags, name='articles-tag'),
-    path('public/search/', views.search, name='search'),
+    path('public/tags/<str:tag>/', views.articles_through_tag, name='articles-tag'),
+    path('public/search-article/', views.search_article,
+         name='search-article'),
     path('public/articles/trending/',
-         views.trending_articles, name='trending-articles')
+         views.trending_articles, name='trending-articles'),
+    path('public/authors/<str:author>/',
+         views.articles_through_author, name='articles-author')
 ]

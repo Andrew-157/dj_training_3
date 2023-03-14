@@ -21,7 +21,9 @@
       {% endif %}
       {% for article in page_obj %}
         <h2>Title: {{ article.title }}</h2>
-        <p>Author: {{ article.author }}</p>
+        {% if not author %}
+          <p>Author: <a href="{% url 'articles:articles-author' article.author %}">{{ article.author }}</a></p>
+        {% endif %}
         {% if article.tags.count > 0%}
           {% for tag in article.tags.all %}
             <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>

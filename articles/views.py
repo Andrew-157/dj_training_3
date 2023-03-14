@@ -310,7 +310,7 @@ def trending_tags(request):
     # find 5 newest articles and order them by how many times they were read
     # articlereading is ordered through metaclass of model ArticleReading
     # by times read in DESC order
-    articles = Article.objects.\
+    articles = Article.objects.select_related('author').\
         order_by('-pub_date').\
         order_by('articlereading').all()[:5]
     tags = []
@@ -328,9 +328,9 @@ def trending_articles(request):
     return render(request, 'articles/trending_articles.html', {'articles': articles})
 
 
-def articles_through_tags(request, tag):
+def articles_through_tag(request, tag):
     tag_object = Tag.objects.filter(name=tag).first()
-    if not tag:
+    if not tag_object:
         return render(request, 'articles/not_exists.html')
     else:
         articles_list = Article.objects.filter(
@@ -343,7 +343,21 @@ def articles_through_tags(request, tag):
         return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
 
 
-def search(request):
+def articles_through_author(request, author):
+    author = User.objects.filter(username=author).first()
+    if not author:
+        return render(request, 'articles/not_exists.html')
+    else:
+        articles_list = Article.objects.filter(
+            author=author).order_by('-pub_date').all()
+        paginator = Paginator(articles_list, 5)
+        page_number = request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+        message = f'You are seeing all articles published by author {author}'
+        return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
+
+
+def search_article(request):
     if request.method == 'POST':
         data = request.POST
         form = SearchForm(request.POST)
@@ -372,4 +386,4 @@ def search(request):
             return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
     elif request.method == 'GET':
         form = SearchForm()
-        return render(request, 'articles/search_for_article.html', {'form': form})
+        return render(request, 'articles/search_article.html', {'form': form})

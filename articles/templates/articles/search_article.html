@@ -17,7 +17,7 @@
     <div class="container py-5">
         <h2>To search through tag use '#' sign </h2>
         <h2>Searching with plain text will find all articles that have this text in their title, content or author's name</h2>
-        <form action="{% url 'articles:search' %}" method="post">
+        <form action="{% url 'articles:search-article' %}" method="post">
             {% csrf_token %} 
             {{ form|crispy }}
             <button class="btn btn-primary" type="submit">Search</button>
