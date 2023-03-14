@@ -9,7 +9,7 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
 from taggit.models import TaggedItem, Tag
-from .forms import NewUserForm, UpdateArticleForm, PublishArticleForm, LeaveCommentForm, SearchForm
+from .forms import NewUserForm, PublishArticleForm, LeaveCommentForm, SearchForm
 from .models import Article, Comment, Reaction, ArticleReading
 
 
@@ -72,6 +72,31 @@ def publish_article(request):
     else:
         form = PublishArticleForm()
     return render(request, 'articles/publish_article.html', {'form': form})
+
+
+@login_required()
+def update_article(request, article_id):
+    current_user = request.user
+    article = Article.objects.filter(id=article_id).first()
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
+        if article.author_id != current_user.id:
+            return render(request, 'articles/not_yours.html')
+        if request.method == 'POST':
+            form = PublishArticleForm(
+                request.POST, request.FILES, instance=article)
+            if form.is_valid():
+                obj = form.save(commit=False)
+                form.instance.author = request.user
+                obj.save()
+                form.save_m2m()
+                messages.info(
+                    request, 'You successfully updated this article')
+                return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
+        else:
+            form = PublishArticleForm(instance=article)
+            return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
 
 
 def public_page(request):
@@ -179,27 +204,27 @@ def delete_article(request,  article_id):
             return HttpResponseRedirect(reverse('articles:personal-page'))
 
 
-@login_required()
-def update_article(request, article_id):
-    current_user = request.user
-    article = Article.objects.filter(id=article_id).first()
-    if not article:
-        return render(request, 'articles/not_exists.html')
-    else:
-        if article.author_id != current_user.id:
-            return render(request, 'articles/not_yours.html')
-        if request.method == 'POST':
-            form = UpdateArticleForm(request.POST, instance=article)
-            if form.is_valid():
-                form.instance.author = request.user
-                form.instance.article = article_id
-                form.save()
-                messages.info(
-                    request, 'You successfully updated this article')
-                return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
-        else:
-            form = UpdateArticleForm(instance=article)
-            return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
+# @login_required()
+# def update_article(request, article_id):
+#     current_user = request.user
+#     article = Article.objects.filter(id=article_id).first()
+#     if not article:
+#         return render(request, 'articles/not_exists.html')
+#     else:
+#         if article.author_id != current_user.id:
+#             return render(request, 'articles/not_yours.html')
+#         if request.method == 'POST':
+#             form = UpdateArticleForm(request.POST, instance=article)
+#             if form.is_valid():
+#                 form.instance.author = request.user
+#                 form.instance.article = article_id
+#                 form.save()
+#                 messages.info(
+#                     request, 'You successfully updated this article')
+#                 return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
+#         else:
+#             form = UpdateArticleForm(instance=article)
+#             return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
 
 
 @login_required()
