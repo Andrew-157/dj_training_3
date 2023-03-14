@@ -10,6 +10,7 @@ django-crispy-forms = "*"
 crispy-bootstrap4 = "*"
 django-taggit = "*"
 pillow = "*"
+django-cleanup = "*"
 
 [dev-packages]
 autopep8 = "*"
