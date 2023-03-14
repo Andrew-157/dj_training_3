@@ -338,9 +338,10 @@ def articles_through_tag(request, tag):
         paginator = Paginator(articles_list, 5)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        message = f'You are seeing articles with tag #{tag}'
+        message_to_user = f'You are seeing articles with tag #{tag}'
 
-        return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
+        return render(request, 'articles/public_page.html', {'page_obj': page_obj,
+                                                             'message_to_user': message_to_user})
 
 
 def articles_through_author(request, author):
@@ -353,8 +354,9 @@ def articles_through_author(request, author):
         paginator = Paginator(articles_list, 5)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        message = f'You are seeing all articles published by author {author}'
-        return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
+        message_to_user = f'You are seeing all articles published by author {author}'
+        return render(request, 'articles/public_page.html', {'page_obj': page_obj,
+                                                             'message_to_user': message_to_user})
 
 
 def search_article(request):
@@ -368,7 +370,7 @@ def search_article(request):
                 tag_object = Tag.objects.filter(name=tag).first()
                 articles_list = Article.objects.filter(
                     tags=tag_object).order_by('-pub_date').all()
-                message = f'{len(articles_list)} articles with #{tag} were found'
+                message_to_user = f'{len(articles_list)} articles with #{tag} were found'
             else:
                 articles_list = Article.objects.select_related('author').\
                     filter(
@@ -377,13 +379,14 @@ def search_article(request):
                         Q(author__username__contains=data)
                 ).order_by('-pub_date').all()
 
-                message = f"{len(articles_list)} articles were found that contain '{data}' in its title, \
+                message_to_user = f"{len(articles_list)} articles were found that contain '{data}' in its title, \
                     content or author's name"
             paginator = Paginator(articles_list, 5)
             page_number = request.GET.get('page')
             page_obj = paginator.get_page(page_number)
 
-            return render(request, 'articles/public_page.html', {'page_obj': page_obj, 'message': message})
+            return render(request, 'articles/public_page.html', {'page_obj': page_obj, \
+                                                                 'message_to_user': message_to_user})
     elif request.method == 'GET':
         form = SearchForm()
         return render(request, 'articles/search_article.html', {'form': form})

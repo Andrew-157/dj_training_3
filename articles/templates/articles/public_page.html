@@ -16,8 +16,8 @@
     {% load crispy_forms_tags %}
     <div class="container py-5">
       <h1>LIGMA Articles</h1>
-      {% if message %}
-        <h2>{{ message }}</h2>
+      {% if message_to_user %}
+        <h2>{{ message_to_user }}</h2>
       {% endif %}
       {% for article in page_obj %}
         <h2>Title: {{ article.title }}</h2>
