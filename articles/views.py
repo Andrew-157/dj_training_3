@@ -115,6 +115,9 @@ def personal_page(request):
     current_user = request.user
     articles_list = Article.objects.filter(author_id=current_user.id).\
         prefetch_related('tags').order_by('-pub_date')
+    total_readings = Article.objects.filter(
+        author_id=current_user.id).aggregate(Sum('articlereading'))
+    print(total_readings)
     paginator = Paginator(articles_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
@@ -124,7 +127,8 @@ def personal_page(request):
 @login_required()
 def personal_article(request, article_id):
     current_user = request.user
-    article = Article.objects.filter(id=article_id).first()
+    article = Article.objects.filter(
+        id=article_id).first()
     if not article:
         return render(request, 'articles/not_exists.html')
     else:
@@ -134,8 +138,9 @@ def personal_article(request, article_id):
             article=article).filter(value=1).count()
         dislikes = Reaction.objects.filter(
             article=article).filter(value=-1).count()
-        article_read = ArticleReading.objects.filter(article=article).first()
-        times_read = 0
+        # article_read = ArticleReading.objects.filter(article=article).first()
+        article_read = article.articlereading_set.all()[0]
+        times_read = None
         if article_read:
             times_read = article_read.times_read
         message_to_user = None
@@ -168,7 +173,8 @@ def public_article(request, article_id):
         dislikes = Reaction.objects.filter(
             article=article).filter(value=-1).count()
         message_to_user = None
-        article_read = ArticleReading.objects.filter(article=article).first()
+        # article_read = ArticleReading.objects.filter(article=article).first()
+        article_read = article.articlereading_set.all()[0]
         if current_user.is_authenticated:
             if not article_read:
                 article_read = ArticleReading(times_read=1, article=article)
