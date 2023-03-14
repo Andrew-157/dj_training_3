@@ -320,7 +320,7 @@ def trending_tags(request):
         filter(
         Q(pub_date__gt=past_date) &
         Q(pub_date__lt=future_date)
-    ).order_by('articlereading').all()[:5]
+    ).order_by('articlereading').all()[:10]
     tags = []
     for article in articles:
         for tag in article.tags.all():
@@ -331,12 +331,17 @@ def trending_tags(request):
 def trending_articles(request):
     past_date = timezone.now() - timedelta(days=3)
     future_date = timezone.now() + timedelta(days=3)
-    articles = Article.objects.select_related('author').\
+    articles_list = Article.objects.select_related('author').\
         filter(
         Q(pub_date__gt=past_date) &
         Q(pub_date__lt=future_date)
-    ).order_by('articlereading').all()[:5]
-    return render(request, 'articles/trending_articles.html', {'articles': articles})
+    ).order_by('articlereading').all()[:10]
+    paginator = Paginator(articles_list, 5)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    message_to_user = f'You are seeing articles trending in recent time'
+    return render(request, 'articles/public_page.html', {'page_obj': page_obj,
+                                                         'message_to_user': message_to_user})
 
 
 def articles_through_tag(request, tag):
