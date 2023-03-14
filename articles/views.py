@@ -59,7 +59,7 @@ def logout_request(request):
 @login_required()
 def publish_article(request):
     if request.method == 'POST':
-        form = PublishArticleForm(request.POST)
+        form = PublishArticleForm(request.POST, request.FILES)
         if form.is_valid():
             obj = form.save(commit=False)
             form.instance.author = request.user
@@ -385,7 +385,7 @@ def search_article(request):
             page_number = request.GET.get('page')
             page_obj = paginator.get_page(page_number)
 
-            return render(request, 'articles/public_page.html', {'page_obj': page_obj, \
+            return render(request, 'articles/public_page.html', {'page_obj': page_obj,
                                                                  'message_to_user': message_to_user})
     elif request.method == 'GET':
         form = SearchForm()
