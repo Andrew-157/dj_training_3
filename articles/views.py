@@ -1,4 +1,4 @@
-from django.db.models import Q, Count
+from django.db.models import Q, Count, Sum
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render, redirect, get_object_or_404
@@ -320,12 +320,21 @@ def trending_tags(request):
     return render(request, 'articles/trending_tags.html', {'tags': tags})
 
 
+def trending_articles(request):
+    articles = Article.objects.\
+        order_by('-pub_date').\
+        order_by('articlereading').all()[:5]
+
+    return render(request, 'articles/trending_articles.html', {'articles': articles})
+
+
 def articles_through_tags(request, tag):
     tag_object = Tag.objects.filter(name=tag).first()
     if not tag:
         return render(request, 'articles/not_exists.html')
     else:
-        articles_list = Article.objects.filter(tags=tag_object).all()
+        articles_list = Article.objects.filter(
+            tags=tag_object).order_by('-pub_date').all()
         paginator = Paginator(articles_list, 5)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
@@ -341,7 +350,7 @@ def search(request):
         if form.is_valid():
             data = request.POST['search_string']
             if data[0] == '#':
-                tag = data[1:]
+                tag = data[1:].lower()
                 tag_object = Tag.objects.filter(name=tag).first()
                 articles_list = Article.objects.filter(
                     tags=tag_object).order_by('-pub_date').all()
@@ -354,7 +363,7 @@ def search(request):
                         Q(author__username__contains=data)
                 ).order_by('-pub_date').all()
 
-                message = f"{len(articles_list)} articles were found that '{data}' in its title, \
+                message = f"{len(articles_list)} articles were found that contain '{data}' in its title, \
                     content or author's name"
             paginator = Paginator(articles_list, 5)
             page_number = request.GET.get('page')
