@@ -18,7 +18,7 @@
         <h1>Articles trending on LIGMA for the last time</h1>
         {% for article in articles %}
         <h2>Title: {{ article.title }}</h2>
-        <p>Author: {{ article.author }}</p>
+        <p>Author: <a href="{% url 'articles:articles-author' article.author %}">{{ article.author }}</a></p>
         {% if article.tags.count > 0%}
           {% for tag in article.tags.all %}
             <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>

@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+from django.utils import timezone
 from django.db.models import Q, Count, Sum
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
@@ -335,9 +337,13 @@ def trending_tags(request):
     # find 5 newest articles and order them by how many times they were read
     # articlereading is ordered through metaclass of model ArticleReading
     # by times read in DESC order
+    past_date = timezone.now() - timedelta(days=3)
+    future_date = timezone.now() + timedelta(days=3)
     articles = Article.objects.select_related('author').\
-        order_by('-pub_date').\
-        order_by('articlereading').all()[:5]
+        filter(
+        Q(pub_date__gt=past_date) &
+        Q(pub_date__lt=future_date)
+    ).order_by('articlereading').all()[:5]
     tags = []
     for article in articles:
         for tag in article.tags.all():
@@ -346,10 +352,13 @@ def trending_tags(request):
 
 
 def trending_articles(request):
-    articles = Article.objects.\
-        order_by('-pub_date').\
-        order_by('articlereading').all()[:5]
-
+    past_date = timezone.now() - timedelta(days=3)
+    future_date = timezone.now() + timedelta(days=3)
+    articles = Article.objects.select_related('author').\
+        filter(
+        Q(pub_date__gt=past_date) &
+        Q(pub_date__lt=future_date)
+    ).order_by('articlereading').all()[:5]
     return render(request, 'articles/trending_articles.html', {'articles': articles})
 
 
