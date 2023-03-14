@@ -22,6 +22,7 @@
         {% endfor %} 
       {% endif %}
       <h1>Your Published articles</h1>
+      <h2>Totally your articles were read {{ total_readings }} times</h2>
       <a href="{% url 'articles:publish-article' %}">Publish new article here</a>
       {% for article in page_obj %}
         <h2>Title: {{ article.title }}</h2>

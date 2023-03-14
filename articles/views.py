@@ -115,13 +115,18 @@ def personal_page(request):
     current_user = request.user
     articles_list = Article.objects.filter(author_id=current_user.id).\
         prefetch_related('tags').order_by('-pub_date')
-    total_readings = Article.objects.filter(
-        author_id=current_user.id).aggregate(Sum('articlereading'))
-    print(total_readings)
+    total_readings = 0
+    for article in articles_list:
+        article_times_read = article.articlereading_set.all()
+        if len(article_times_read) < 1:
+            continue
+        else:
+            total_readings += article_times_read[0].times_read
     paginator = Paginator(articles_list, 5)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'articles/personal_page.html', {'page_obj': page_obj})
+    return render(request, 'articles/personal_page.html', {'page_obj': page_obj,
+                                                           'total_readings': total_readings})
 
 
 @login_required()
@@ -138,12 +143,11 @@ def personal_article(request, article_id):
             article=article).filter(value=1).count()
         dislikes = Reaction.objects.filter(
             article=article).filter(value=-1).count()
-        # article_read = ArticleReading.objects.filter(article=article).first()
-        article_read = article.articlereading_set.all()[0]
-        times_read = None
+        article_read = ArticleReading.objects.filter(article=article).first()
+        times_read = 0
         if article_read:
             times_read = article_read.times_read
-        message_to_user = None
+        message_to_user = 0
         reaction = Reaction.objects.filter(
             Q(article=article) & Q(author=current_user)).first()
         if reaction:
@@ -173,8 +177,7 @@ def public_article(request, article_id):
         dislikes = Reaction.objects.filter(
             article=article).filter(value=-1).count()
         message_to_user = None
-        # article_read = ArticleReading.objects.filter(article=article).first()
-        article_read = article.articlereading_set.all()[0]
+        article_read = ArticleReading.objects.filter(article=article).first()
         if current_user.is_authenticated:
             if not article_read:
                 article_read = ArticleReading(times_read=1, article=article)
@@ -373,10 +376,18 @@ def articles_through_author(request, author):
     else:
         articles_list = Article.objects.filter(
             author=author).order_by('-pub_date').all()
+        total_readings = 0
+        for article in articles_list:
+            article_times_read = article.articlereading_set.all()
+            if len(article_times_read) < 1:
+                continue
+            else:
+                total_readings += article_times_read[0].times_read
         paginator = Paginator(articles_list, 5)
         page_number = request.GET.get('page')
         page_obj = paginator.get_page(page_number)
-        message_to_user = f'You are seeing all articles published by author {author}'
+        message_to_user = f'You are seeing all articles published by author {author} \
+            that were totally read {total_readings} times'
         return render(request, 'articles/public_page.html', {'page_obj': page_obj,
                                                              'message_to_user': message_to_user})
 
