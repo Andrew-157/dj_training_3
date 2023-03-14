@@ -206,29 +206,6 @@ def delete_article(request,  article_id):
             return HttpResponseRedirect(reverse('articles:personal-page'))
 
 
-# @login_required()
-# def update_article(request, article_id):
-#     current_user = request.user
-#     article = Article.objects.filter(id=article_id).first()
-#     if not article:
-#         return render(request, 'articles/not_exists.html')
-#     else:
-#         if article.author_id != current_user.id:
-#             return render(request, 'articles/not_yours.html')
-#         if request.method == 'POST':
-#             form = UpdateArticleForm(request.POST, instance=article)
-#             if form.is_valid():
-#                 form.instance.author = request.user
-#                 form.instance.article = article_id
-#                 form.save()
-#                 messages.info(
-#                     request, 'You successfully updated this article')
-#                 return HttpResponseRedirect(reverse('articles:personal-article', args=(article_id, )))
-#         else:
-#             form = UpdateArticleForm(instance=article)
-#             return render(request, 'articles/update_article.html', {'form': form, 'article_id': article_id})
-
-
 @login_required()
 def leave_comment(request, article_id):
     current_user = request.user

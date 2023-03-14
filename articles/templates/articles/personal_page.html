@@ -30,7 +30,7 @@
         {% endif %}
         {% if article.tags.count > 0%}
           {% for tag in article.tags.all %}
-            <a href="">#{{ tag }}</a>
+            <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>
           {% endfor %}
         {% endif %}
         <p>Publication date: {{ article.pub_date.date }}</p>

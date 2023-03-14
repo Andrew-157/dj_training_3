@@ -20,9 +20,17 @@
           {{ message }} 
         {% endfor %}
       {% endif %}
-      <h2>Topic: {{ article.title }}</h2>
+      <h2>Title: {{ article.title }}</h2>
+      {% if article.image %}
+          <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
+      {% endif %}
       <h3>Content:</h3>
       <p>{{ article.content }}</p>
+      {% if article.tags.count > 0%}
+          {% for tag in article.tags.all %}
+            <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>
+          {% endfor %}
+      {% endif %}
       <p>Publication date: {{ article.pub_date.date }}</p>
       <a href="{% url 'articles:update-article' article.id %}">Edit your article</a>
       <p>Click this button if you want to delete this article:</p>
