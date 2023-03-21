@@ -21,9 +21,7 @@
         {% endfor %}
       {% endif %}
       <h2>Title: {{ article.title }}</h2>
-      {% if article.image %}
-          <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
-      {% endif %}
+      <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
       <h3>Content:</h3>
       <p>{{ article.content }}</p>
       {% for tag in article.tags.all %}

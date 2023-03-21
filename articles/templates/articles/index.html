@@ -16,6 +16,9 @@
     {% load crispy_forms_tags %}
     <div class="container py-5">
       <h1>Welcome to the LIGMA</h1>
+      {% if user.is_authenticated %}
+        <p>You are authenticated as <strong>{{ user }}</strong></p>
+      {% endif %}
       <p>
         LIGMA is a Website for publication, reading and discussing articles
         about anything you want
@@ -27,7 +30,7 @@
       <br />
       {% if messages %} 
         {% for message in messages%} 
-          {{ message }} 
+          <strong>{{ message }}</strong> 
         {% endfor %}
       {% endif %}
       <br />
