@@ -41,13 +41,13 @@ class LeaveCommentForm(forms.ModelForm):
         model = Comment
         exclude = ['commentator', 'article', 'pub_date']
 
-    def save(self):
-        commentator = self.instance.commentator
-        article = self.instance.article
-        content = self.cleaned_data['content']
-        comment = Comment(commentator=commentator,
-                          article=article, content=content)
-        comment.save()
+    # def save(self):
+    #     commentator = self.instance.commentator
+    #     article = self.instance.article
+    #     content = self.cleaned_data['content']
+    #     comment = Comment(commentator=commentator,
+    #                       article=article, content=content)
+    #     comment.save()
 
 
 class SearchForm(forms.Form):

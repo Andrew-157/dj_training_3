@@ -1,27 +1,32 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
+from django.views import View
 from django.utils import timezone
-from django.db.models import Q, Count, Sum
+from django.db.models import Q
+from django.utils.decorators import method_decorator
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseRedirect
+from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from django.urls import reverse
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.core.paginator import Paginator
-from taggit.models import TaggedItem, Tag
+from taggit.models import Tag
 from .forms import NewUserForm, PublishArticleForm, LeaveCommentForm, SearchForm
 from .models import Article, Comment, Reaction, ArticleReading
 
 
-def index(request):
-    return render(request, 'articles/index.html')
+class Register(View):
+    form_class = NewUserForm
+    template_name = 'articles/registration.html'
 
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
 
-def register_request(request):
-    if request.method == 'POST':
-        form = NewUserForm(request.POST)
+    def post(self, request):
+        form = self.form_class(request.POST)
         if form.is_valid():
             user = form.save()
             username = form.cleaned_data['username']
@@ -29,15 +34,19 @@ def register_request(request):
             messages.info(request, f'Welcome to the Ligma, {username}')
             return redirect('articles:index')
 
-    elif request.method == 'GET':
-        form = NewUserForm()
-
-    return render(request, 'articles/registration.html', {'form': form})
+        return render(request, self.template_name, {'form': form})
 
 
-def login_request(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, request.POST)
+class Login(View):
+    form_class = AuthenticationForm
+    template_name = 'articles/login.html'
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request, request.POST)
         if form.is_valid():
             username = form.cleaned_data['username']
             password = form.cleaned_data['password']
@@ -46,10 +55,7 @@ def login_request(request):
                 login(request, user)
                 messages.info(request, f"Welcome back to Ligma, {username}")
                 return redirect('articles:index')
-    else:
-        form = AuthenticationForm()
-
-    return render(request, 'articles/login.html', {'form': form})
+        return render(request, self.template_name, {'form': form})
 
 
 def logout_request(request):
@@ -58,10 +64,16 @@ def logout_request(request):
     return redirect('articles:index')
 
 
-@login_required()
-def publish_article(request):
-    if request.method == 'POST':
-        form = PublishArticleForm(request.POST, request.FILES)
+class PublishArticle(View):
+    form_class = PublishArticleForm
+    template_name = 'articles/publish_article.html'
+
+    def get(self, request):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request):
+        form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             obj = form.save(commit=False)
             form.instance.author = request.user
@@ -70,10 +82,11 @@ def publish_article(request):
             messages.info(
                 request, 'You successfully published new article')
             return HttpResponseRedirect(reverse('articles:personal-page'))
+        return render(request, 'articles/publish_article.html', {'form': form})
 
-    else:
-        form = PublishArticleForm()
-    return render(request, 'articles/publish_article.html', {'form': form})
+    @method_decorator(login_required)
+    def dispatch(self, request, *args, **kwargs):
+        return super().dispatch(request, *args, **kwargs)
 
 
 @login_required()
@@ -178,13 +191,18 @@ def public_article(request, article_id):
             article=article).filter(value=-1).count()
         message_to_user = None
         article_read = ArticleReading.objects.filter(article=article).first()
-        if current_user.is_authenticated:
-            if not article_read:
+        times_read = 0
+        if not article_read:
+            if current_user.is_authenticated:
                 article_read = ArticleReading(times_read=1, article=article)
                 article_read.save()
-            else:
+                times_read = article_read.times_read
+        else:
+            if current_user.is_authenticated:
                 article_read.times_read += 1
                 article_read.save()
+            times_read = article_read.times_read
+        if current_user.is_authenticated:
             reaction = Reaction.objects.filter(
                 Q(article=article) & Q(author=current_user)).first()
             if reaction:
@@ -197,10 +215,11 @@ def public_article(request, article_id):
                                                                 'likes': likes,
                                                                 'dislikes': dislikes,
                                                                 'message_to_user': message_to_user,
-                                                                'times_read': article_read.times_read})
+                                                                'times_read': times_read
+                                                                })
 
 
-@login_required()
+@ login_required()
 def delete_article(request,  article_id):
     current_user = request.user
     article = Article.objects.filter(id=article_id).first()
@@ -215,7 +234,7 @@ def delete_article(request,  article_id):
             return HttpResponseRedirect(reverse('articles:personal-page'))
 
 
-@login_required()
+@ login_required()
 def leave_comment(request, article_id):
     current_user = request.user
     article = Article.objects.filter(
@@ -235,7 +254,7 @@ def leave_comment(request, article_id):
             return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
 
 
-@login_required()
+@ login_required()
 def author_comment(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
@@ -257,11 +276,11 @@ def author_comment(request, article_id):
                 return render(request, 'articles/author_comment.html', {'form': form, 'article': article})
 
 
-def become_user(request):
-    return render(request, 'articles/become_user.html')
+# def become_user(request):
+#     return render(request, 'articles/become_user.html')
 
 
-@login_required()
+@ login_required()
 def leave_like(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
@@ -290,7 +309,7 @@ def leave_like(request, article_id):
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
 
 
-@login_required()
+@ login_required()
 def leave_dislike(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()

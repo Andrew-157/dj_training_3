@@ -14,9 +14,9 @@
   </head>
   <body>
     {% load crispy_forms_tags %} 
-    <a href="{% url 'articles:index' %}">To the homepage</a>
     {% if page_obj %}
     <div class="container py-5">
+      <a href="{% url 'articles:index' %}">To the homepage</a>
       {% if messages %} 
         {% for message in messages %}
           <p>{{ message }}</p>
@@ -59,6 +59,7 @@
     </div>
     {% else %}
     <div class="container py-5">
+      <a href="{% url 'articles:index' %}">To the homepage</a>
       <h2>Looks like you haven't published anything yet</h2>
     </div>
     {% endif %}
