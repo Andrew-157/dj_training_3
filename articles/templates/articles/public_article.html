@@ -16,17 +16,13 @@
     {% load crispy_forms_tags %}
     <div class="container py-5">
       <h2>Title: {{ article.title }}</h2>
-      {% if article.image %}
-          <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
-      {% endif %}
+      <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
       <p>Author: <a href="{% url 'articles:articles-author' article.author %}">{{ article.author }}</a></p>
       <p>Content:</p>
       <p>{{ article.content }}</p>
-      {% if article.tags.count > 0%}
-          {% for tag in article.tags.all %}
-            <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>
-          {% endfor %}
-      {% endif %}
+      {% for tag in article.tags.all %}
+        <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>
+      {% endfor %}
       <p>Publication date: {{ article.pub_date.date }}</p>
       <p>This article was read {{ times_read }} times</p>
       <h3>Readers reactions</h3>

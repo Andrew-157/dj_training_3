@@ -25,11 +25,9 @@
           <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
         {% endif %}
         <p>Author: <a href="{% url 'articles:articles-author' article.author %}">{{ article.author }}</a></p>
-        {% if article.tags.count > 0%}
-          {% for tag in article.tags.all %}
-            <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>
-          {% endfor %}
-        {% endif %}
+        {% for tag in article.tags.all %}
+          <a href="{% url 'articles:articles-tag' tag %}">#{{ tag }}</a>
+        {% endfor %}
         <p>Publication date: {{ article.pub_date.date }}</p>
         <form action="{% url 'articles:public-article' article.id %}">
           {% csrf_token %}
