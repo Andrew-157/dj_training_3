@@ -42,3 +42,12 @@ class ArticleReading(models.Model):
 
     class Meta:
         ordering = ['-times_read']
+
+
+class Channel(models.Model):
+    owner = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class Subscription(models.Model):
+    subscriber = models.ForeignKey(User, on_delete=models.CASCADE)
+    channel = models.ForeignKey(Channel, on_delete=models.CASCADE)

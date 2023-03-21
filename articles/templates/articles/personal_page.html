@@ -60,6 +60,11 @@
     {% else %}
     <div class="container py-5">
       <a href="{% url 'articles:index' %}">To the homepage</a>
+      {% if messages %} 
+        {% for message in messages %}
+          <strong>{{ message }}</strong>
+        {% endfor %} 
+      {% endif %}
       <h2>Looks like you haven't published anything yet</h2>
     </div>
     {% endif %}

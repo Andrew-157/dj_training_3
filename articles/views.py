@@ -14,7 +14,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator
 from taggit.models import Tag
 from .forms import NewUserForm, PublishArticleForm, LeaveCommentForm, SearchForm
-from .models import Article, Comment, Reaction, ArticleReading
+from .models import Article, Comment, Reaction, ArticleReading, Channel, Subscription
 
 
 class Register(View):
@@ -29,8 +29,13 @@ class Register(View):
         form = self.form_class(request.POST)
         if form.is_valid():
             user = form.save()
-            username = form.cleaned_data['username']
+            # Create a channel entity while creating new users
+            # this avoids excessive queries and if conditions
+            # in another views when dealing with subscription
+            channel = Channel(owner=user)
+            channel.save()
             login(request, user)
+            username = form.cleaned_data['username']
             messages.info(request, f'Welcome to the Ligma, {username}')
             return redirect('articles:index')
 
@@ -234,7 +239,7 @@ def delete_article(request,  article_id):
             return HttpResponseRedirect(reverse('articles:personal-page'))
 
 
-@ login_required()
+@login_required()
 def leave_comment(request, article_id):
     current_user = request.user
     article = Article.objects.filter(
@@ -254,7 +259,7 @@ def leave_comment(request, article_id):
             return render(request, 'articles/leave_comment.html', {'form': form, 'article': article})
 
 
-@ login_required()
+@login_required()
 def author_comment(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
@@ -276,11 +281,7 @@ def author_comment(request, article_id):
                 return render(request, 'articles/author_comment.html', {'form': form, 'article': article})
 
 
-# def become_user(request):
-#     return render(request, 'articles/become_user.html')
-
-
-@ login_required()
+@login_required()
 def leave_like(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
@@ -294,22 +295,34 @@ def leave_like(request, article_id):
             if reaction.value == 1:
                 # if someone hits like button, but it is already like, we delete this reaction
                 reaction.delete()
+                article_read = ArticleReading.objects.filter(
+                    article=article).first()
+                article_read.times_read -= 1
+                article_read.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
             elif reaction.value == -1:
                 # if value of reaction for current user is dislike (-1),
                 # then hitting like button value of reaction becomes 1 (like value)
                 reaction.value = 1
                 reaction.save()
+                article_read = ArticleReading.objects.filter(
+                    article=article).first()
+                article_read.times_read -= 1
+                article_read.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
         else:
             # if user hasn't left any reaction up to this moment
             # then hitting like button makes reaction like with value 1
             like = Reaction(author=current_user, article=article, value=1)
             like.save()
+            article_read = ArticleReading.objects.filter(
+                article=article).first()
+            article_read.times_read -= 1
+            article_read.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
 
 
-@ login_required()
+@login_required()
 def leave_dislike(request, article_id):
     current_user = request.user
     article = Article.objects.filter(pk=article_id).first()
@@ -323,18 +336,30 @@ def leave_dislike(request, article_id):
             if reaction.value == -1:
                 # if someone hits dislike button, but it is already like, we delete this reaction
                 reaction.delete()
+                article_read = ArticleReading.objects.filter(
+                    article=article).first()
+                article_read.times_read -= 1
+                article_read.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
             elif reaction.value == 1:
                 # if value of reaction for current user is like (1),
                 # then hitting dislike button value of reaction becomes -1 (dislike value)
                 reaction.value = -1
                 reaction.save()
+                article_read = ArticleReading.objects.filter(
+                    article=article).first()
+                article_read.times_read -= 1
+                article_read.save()
                 return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
         else:
             # if user hasn't left any reaction up to this moment
             # then hitting like button makes reaction dislike with value -1
             dislike = Reaction(author=current_user, article=article, value=-1)
             dislike.save()
+            article_read = ArticleReading.objects.filter(
+                article=article).first()
+            article_read.times_read -= 1
+            article_read.save()
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
 
 
@@ -442,3 +467,16 @@ def search_article(request):
     elif request.method == 'GET':
         form = SearchForm()
         return render(request, 'articles/search_article.html', {'form': form})
+
+
+def subscribe(request, author):
+    current_user = request.user
+    author = User.objects.filter(username=author).first()
+    if not author:
+        return render(request, 'articles/not_exists.html')
+    channel = Channel.objects.filter(owner=author).first()
+    if not channel:
+        channel = Channel(owner=author)
+        channel.save()
+    subscription = Subscription(subscriber=current_user, channel=channel)
+    subscription.save()
