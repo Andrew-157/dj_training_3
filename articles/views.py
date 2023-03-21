@@ -197,6 +197,16 @@ def public_article(request, article_id):
         message_to_user = None
         article_read = ArticleReading.objects.filter(article=article).first()
         times_read = 0
+        subscription_status = 'You are not subscribed to this author'
+        channel = Channel.objects.filter(owner=article.author).first()
+        subscription = Subscription.objects.filter(
+            Q(subscriber=current_user) &
+            Q(channel=channel)
+        ).first()
+        if subscription:
+            subscription_status = 'You are subscribed to this author'
+        if article.author == current_user:
+            subscription_status = 'This article belongs to you'
         if not article_read:
             if current_user.is_authenticated:
                 article_read = ArticleReading(times_read=1, article=article)
@@ -220,7 +230,8 @@ def public_article(request, article_id):
                                                                 'likes': likes,
                                                                 'dislikes': dislikes,
                                                                 'message_to_user': message_to_user,
-                                                                'times_read': times_read
+                                                                'times_read': times_read,
+                                                                'subscription_status': subscription_status
                                                                 })
 
 
@@ -295,6 +306,7 @@ def leave_like(request, article_id):
             if reaction.value == 1:
                 # if someone hits like button, but it is already like, we delete this reaction
                 reaction.delete()
+                # this solves the bug
                 article_read = ArticleReading.objects.filter(
                     article=article).first()
                 article_read.times_read -= 1
@@ -305,6 +317,7 @@ def leave_like(request, article_id):
                 # then hitting like button value of reaction becomes 1 (like value)
                 reaction.value = 1
                 reaction.save()
+                # this solves the bug
                 article_read = ArticleReading.objects.filter(
                     article=article).first()
                 article_read.times_read -= 1
@@ -413,27 +426,59 @@ def articles_through_tag(request, tag):
                                                              'message_to_user': message_to_user})
 
 
-def articles_through_author(request, author):
+def author_page(request, author):
+    current_user = request.user
     author = User.objects.filter(username=author).first()
     if not author:
         return render(request, 'articles/not_exists.html')
+    if current_user == author:
+        subscription_status = None
     else:
-        articles_list = Article.objects.filter(
-            author=author).order_by('-pub_date').all()
-        total_readings = 0
-        for article in articles_list:
-            article_times_read = article.articlereading_set.all()
-            if len(article_times_read) < 1:
-                continue
-            else:
-                total_readings += article_times_read[0].times_read
-        paginator = Paginator(articles_list, 5)
-        page_number = request.GET.get('page')
-        page_obj = paginator.get_page(page_number)
-        message_to_user = f'You are seeing all articles published by author {author} \
-            that were totally read {total_readings} times'
-        return render(request, 'articles/public_page.html', {'page_obj': page_obj,
-                                                             'message_to_user': message_to_user})
+        subscription_status = 'Subscribe'
+        channel = Channel.objects.filter(owner=author).first()
+        subscription = Subscription.objects.filter(
+            Q(subscriber=current_user) &
+            Q(channel=channel)
+        ).first()
+        if subscription:
+            subscription_status = 'Subscribed'
+    articles = Article.objects.filter(
+        author=author).order_by('-pub_date').all()
+    total_readings = 0
+    for article in articles:
+        article_times_read = article.articlereading_set.all()
+        if len(article_times_read) < 1:
+            continue
+        else:
+            total_readings += article_times_read[0].times_read
+    message_to_user = f'You are seeing all articles published by author {author} \
+        that were totally read {total_readings} times'
+    return render(request, 'articles/author_page.html', {'author': author,
+                                                         'message_to_user': message_to_user,
+                                                         'subscription_status': subscription_status,
+                                                         'articles_number': len(articles),
+                                                         'articles': articles,
+                                                         'total_readings': total_readings})
+
+
+def subscribe(request, author):
+    current_user = request.user
+    author = User.objects.filter(username=author).first()
+    if not author:
+        return render(request, 'articles/not_exists.html')
+    channel = Channel.objects.filter(owner=author).first()
+    if channel.owner == current_user:
+        return HttpResponseRedirect(reverse('articles:articles-author', args=(author, )))
+    subscription = Subscription.objects.filter(
+        Q(subscriber=current_user) &
+        Q(channel=channel)
+    )
+    if subscription:
+        subscription.delete()
+    else:
+        subscription = Subscription(subscriber=current_user, channel=channel)
+        subscription.save()
+    return HttpResponseRedirect(reverse('articles:articles-author', args=(author, )))
 
 
 def search_article(request):
@@ -467,16 +512,3 @@ def search_article(request):
     elif request.method == 'GET':
         form = SearchForm()
         return render(request, 'articles/search_article.html', {'form': form})
-
-
-def subscribe(request, author):
-    current_user = request.user
-    author = User.objects.filter(username=author).first()
-    if not author:
-        return render(request, 'articles/not_exists.html')
-    channel = Channel.objects.filter(owner=author).first()
-    if not channel:
-        channel = Channel(owner=author)
-        channel.save()
-    subscription = Subscription(subscriber=current_user, channel=channel)
-    subscription.save()

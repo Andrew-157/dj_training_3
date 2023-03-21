@@ -36,5 +36,7 @@ urlpatterns = [
     path('public/articles/trending/',
          views.trending_articles, name='trending-articles'),
     path('public/authors/<str:author>/',
-         views.articles_through_author, name='articles-author')
+         views.author_page, name='articles-author'),
+    path('public/authors/<str:author>/subscribe/',
+         views.subscribe, name='subscribe')
 ]

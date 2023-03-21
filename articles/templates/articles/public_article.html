@@ -15,6 +15,7 @@
   <body>
     {% load crispy_forms_tags %}
     <div class="container py-5">
+      <p>{{ subscription_status }}</p>
       <h2>Title: {{ article.title }}</h2>
       <img src="{{ article.image.url }}" alt="Article image" style="width: 10%; float: right; margin-right: 10px;">
       <p>Author: <a href="{% url 'articles:articles-author' article.author %}">{{ article.author }}</a></p>

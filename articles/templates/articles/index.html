@@ -37,7 +37,7 @@
       {% if user.is_authenticated %}
         <a href="{% url 'articles:publish-article' %}">Publish new article here</a>
         <br />
-        <a href="{% url 'articles:personal-page'%}">See your articles here</a>
+        <a href="{% url 'articles:personal-page'%}">You personal page</a>
         <br />
         <a href="{% url 'articles:logout' %}">Log Out</a>
       {% else %}
