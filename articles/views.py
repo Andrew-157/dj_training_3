@@ -335,6 +335,48 @@ def leave_like(request, article_id):
             return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
 
 
+def author_like(request, article_id):
+    current_user = request.user
+    article = Article.objects.filter(pk=article_id).first()
+    if not article:
+        return render(request, 'articles/not_exists.html')
+    else:
+        reaction = Reaction.objects.filter(
+            Q(article=article) & Q(author=current_user)
+        ).first()
+        if reaction:
+            if reaction.value == 1:
+                # if someone hits like button, but it is already like, we delete this reaction
+                reaction.delete()
+                # this solves the bug
+                article_read = ArticleReading.objects.filter(
+                    article=article).first()
+                article_read.times_read -= 1
+                article_read.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+            elif reaction.value == -1:
+                # if value of reaction for current user is dislike (-1),
+                # then hitting like button value of reaction becomes 1 (like value)
+                reaction.value = 1
+                reaction.save()
+                # this solves the bug
+                article_read = ArticleReading.objects.filter(
+                    article=article).first()
+                article_read.times_read -= 1
+                article_read.save()
+                return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+        else:
+            # if user hasn't left any reaction up to this moment
+            # then hitting like button makes reaction like with value 1
+            like = Reaction(author=current_user, article=article, value=1)
+            like.save()
+            article_read = ArticleReading.objects.filter(
+                article=article).first()
+            article_read.times_read -= 1
+            article_read.save()
+            return HttpResponseRedirect(reverse('articles:public-article', args=(article_id,)))
+
+
 @login_required()
 def leave_dislike(request, article_id):
     current_user = request.user
@@ -424,41 +466,6 @@ def articles_through_tag(request, tag):
 
         return render(request, 'articles/public_page.html', {'page_obj': page_obj,
                                                              'message_to_user': message_to_user})
-
-
-def author_page(request, author):
-    current_user = request.user
-    author = User.objects.filter(username=author).first()
-    if not author:
-        return render(request, 'articles/not_exists.html')
-    if current_user == author:
-        subscription_status = None
-    else:
-        subscription_status = 'Subscribe'
-        channel = Channel.objects.filter(owner=author).first()
-        subscription = Subscription.objects.filter(
-            Q(subscriber=current_user) &
-            Q(channel=channel)
-        ).first()
-        if subscription:
-            subscription_status = 'Subscribed'
-    articles = Article.objects.filter(
-        author=author).order_by('-pub_date').all()
-    total_readings = 0
-    for article in articles:
-        article_times_read = article.articlereading_set.all()
-        if len(article_times_read) < 1:
-            continue
-        else:
-            total_readings += article_times_read[0].times_read
-    message_to_user = f'You are seeing all articles published by author {author} \
-        that were totally read {total_readings} times'
-    return render(request, 'articles/author_page.html', {'author': author,
-                                                         'message_to_user': message_to_user,
-                                                         'subscription_status': subscription_status,
-                                                         'articles_number': len(articles),
-                                                         'articles': articles,
-                                                         'total_readings': total_readings})
 
 
 def subscribe(request, author):
